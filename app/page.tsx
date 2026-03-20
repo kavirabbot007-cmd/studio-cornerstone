@@ -1,292 +1,265 @@
-/**
- * CRAFTMEN STUDIO — page.tsx
- *
- * SETUP (do this once):
- * 1. Create folder: public/images/
- * 2. Copy your files there with EXACT names:
- *    logo.png  → your circular logo (image 1 you shared)
- *    p1.jpg    → dining room contemporary (image 2)
- *    p2.jpg    → classical living room burgundy (image 3)
- *    p3.jpg    → corridor with bull sculpture (image 4)
- *    p4.jpg    → burgundy wallpaper room (image 5)
- *    p5.jpg    → open plan living (image 6)
- *    p6.jpg    → detail living room (image 7)
- *    p7.jpg    → formal seating (image 8)
- *    p8.jpg    → bright living room (image 9)
- *    p9.jpg    → dresser detail (image 10 - wait, image 9 is dresser detail)
- *    p10.jpg   → dining nook with shelves (image 10 - wait let me recount)
- *    p11.jpg   → corridor with kitchen view (image 11)
- *    p12.jpg   → formal dining chandelier (image 12)
- *    p13.jpg   → marble living room (image 13)
- *    p14.jpg   → grey luxury living (image 14)
- *    p15.jpg   → modern living beige (image 15)
- *
- * 3. npm install framer-motion lucide-react
- */
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useInView,
-  useScroll,
-  useTransform,
-} from "framer-motion";
-import { ArrowRight, X, Phone, MapPin, Clock } from "lucide-react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import { ArrowRight, X, Phone, MapPin, Clock, Menu } from "lucide-react";
 
-/* ══════════════════════════════════════════════
-   CONTAINER SCROLL — 3D perspective showcase
-══════════════════════════════════════════════ */
-function ContainerScroll({
-  children,
-  titleComponent,
-}: {
-  children: React.ReactNode;
-  titleComponent: React.ReactNode;
+/* ─── helpers ─── */
+function FadeIn({ children, delay = 0, className = "", up = true }: {
+  children: React.ReactNode; delay?: number; className?: string; up?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  const rotate   = useTransform(scrollYProgress, [0, 0.45], [isMobile ? 10 : 16, 0]);
-  const scale    = useTransform(scrollYProgress, [0, 0.45], [isMobile ? 0.82 : 0.88, 1]);
-  const translateY = useTransform(scrollYProgress, [0, 0.45], [0, -50]);
-
-  return (
-    <div ref={ref} style={{ height: isMobile ? "120vh" : "155vh" }} className="relative">
-      <div className="sticky top-0 h-screen flex flex-col items-center justify-center overflow-hidden px-4 md:px-8">
-        <motion.div style={{ translateY }} className="text-center mb-8 z-10">
-          {titleComponent}
-        </motion.div>
-        <motion.div
-          style={{ rotateX: rotate, scale, transformPerspective: "1400px", transformOrigin: "center top" }}
-          className="w-full max-w-5xl"
-        >
-          {children}
-        </motion.div>
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════
-   FADE IN
-══════════════════════════════════════════════ */
-function FadeIn({
-  children, delay = 0, className = "", direction = "up", style = {},
-}: {
-  children: React.ReactNode; delay?: number; className?: string;
-  direction?: "up" | "left" | "right" | "none"; style?: React.CSSProperties;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
-  const dirs: Record<string, object> = { up: { y: 28 }, left: { x: -28 }, right: { x: 28 }, none: {} };
+  const inView = useInView(ref, { once: true, margin: "-50px" });
   return (
     <motion.div ref={ref}
-      initial={{ opacity: 0, ...dirs[direction] }}
-      animate={inView ? { opacity: 1, x: 0, y: 0 } : {}}
-      transition={{ duration: 0.82, delay, ease: [0.16, 1, 0.3, 1] }}
-      className={className} style={style}>
+      initial={{ opacity: 0, y: up ? 24 : 0 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }}
+      className={className}>
       {children}
     </motion.div>
   );
 }
 
-function Eyebrow({ text, dark = false }: { text: string; dark?: boolean }) {
+function Label({ text }: { text: string }) {
   return (
-    <div className="flex items-center gap-3 mb-4">
-      <span className="block w-8 h-px flex-shrink-0" style={{ background: dark ? "#c9a96e" : "#9a7a4a" }} />
-      <span className="font-sans text-[9px] tracking-[0.36em] uppercase"
-        style={{ color: dark ? "#c9a96e" : "#9a7a4a" }}>{text}</span>
-    </div>
+    <p style={{ fontFamily: "Jost, sans-serif", fontSize: 9, letterSpacing: "0.38em", textTransform: "uppercase", color: "#b89a6a", display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+      <span style={{ display: "block", width: 28, height: 1, background: "#b89a6a", flexShrink: 0 }} />
+      {text}
+    </p>
   );
 }
 
-function Counter({ to, suffix, label, active }: {
-  to: number; suffix: string; label: string; active: boolean;
-}) {
-  const [val, setVal] = useState(0);
-  const done = useRef(false);
-  useEffect(() => {
-    if (!active || done.current) return;
-    done.current = true;
-    const step = Math.ceil(to / 55);
-    let cur = 0;
-    const id = setInterval(() => { cur = Math.min(cur + step, to); setVal(cur); if (cur >= to) clearInterval(id); }, 18);
-    return () => clearInterval(id);
-  }, [active, to]);
-  return (
-    <FadeIn className="text-center px-6 py-8 hover:-translate-y-1 transition-all duration-300"
-      style={{ background: "#faf6f0", border: "1px solid rgba(201,169,110,0.2)" }}>
-      <span className="block font-serif text-[50px] font-light leading-none" style={{ color: "#1a1510" }}>{val}{suffix}</span>
-      <span className="block font-sans text-[9px] tracking-[0.28em] uppercase mt-2" style={{ color: "#9a7a4a" }}>{label}</span>
-    </FadeIn>
-  );
-}
+const SERIF: React.CSSProperties = { fontFamily: "'Cormorant Garamond', Georgia, serif" };
+const SANS: React.CSSProperties  = { fontFamily: "Jost, sans-serif" };
+const GOLD = "#b89a6a";
+const GOLD2 = "#d4b896";
+const CREAM = "#f2ede7";
+const BG   = "#0a0908";
+const BG2  = "#0f0e0c";
+const BG3  = "#141210";
+const GRAY = "#8a8480";
 
-/* ══════════════════════════════════════════════
-   DATA
-══════════════════════════════════════════════ */
-const PROJECTS = [
-  { img: "/images/p2.webp",  title: "The Classical Residence",  cat: "Heritage Living",   loc: "South Delhi",       year: "2024", area: "6,800 sq ft" },
-  { img: "/images/p12.webp", title: "The Chandelier Suite",     cat: "Formal Dining",     loc: "Greater Kailash",   year: "2024", area: "4,200 sq ft" },
-  { img: "/images/p1.webp",  title: "Contemporary Villa",       cat: "Modern Living",     loc: "Gurugram",          year: "2024", area: "3,900 sq ft" },
-  { img: "/images/p14.webp", title: "The Grey Manor",           cat: "Luxury Apartment",  loc: "Lutyens Delhi",     year: "2023", area: "5,100 sq ft" },
-  { img: "/images/p10.webp", title: "Walnut Study & Dining",    cat: "Multifunctional",   loc: "Vasant Vihar",      year: "2023", area: "2,400 sq ft" },
-  { img: "/images/p13.webp", title: "Marble Pavilion",          cat: "Residential",       loc: "Defence Colony",    year: "2022", area: "7,200 sq ft" },
-];
+export default function Page() {
+  const [menu,    setMenu]    = useState(false);
+  const [solid,   setSolid]   = useState(false);
+  const [pct,     setPct]     = useState(0);
+  const [btt,     setBtt]     = useState(false);
+  const [ticking, setTicking] = useState(false);
+  const [clock,   setClock]   = useState("");
+  const [lb,      setLb]      = useState<string | null>(null);
+  const [hero,    setHero]    = useState(0);
 
-const GALLERY = [
-  { img: "/images/p3.webp",  label: "Classical Corridor",  span: "row-span-2" },
-  { img: "/images/p5.webp",  label: "Open Plan Living",    span: "" },
-  { img: "/images/p4.webp",  label: "Burgundy Alcove",     span: "" },
-  { img: "/images/p6.webp",  label: "Walnut & Velvet",     span: "" },
-  { img: "/images/p7.webp",  label: "Heritage Seating",    span: "col-span-2" },
-  { img: "/images/p8.webp",  label: "Morning Room",        span: "" },
-  { img: "/images/p9.webp",  label: "Artisan Dresser",     span: "" },
-  { img: "/images/p11.webp", label: "Gallery Corridor",    span: "" },
-];
+  const heroImgs = [
+    "/images/p2.webp",
+    "/images/p12.webp",
+    "/images/p14.webp",
+  ];
 
-const TESTIMONIALS = [
-  { q: "Craftmen Studio transformed our apartment into something we could never have imagined. Every detail, every surface — considered with absolute care.", name: "Priya & Arjun Mehra",  role: "Homeowners, South Delhi",   init: "PM" },
-  { q: "The classical living room they designed has become the soul of our home. Guests ask about it every single time they visit.",                          name: "Sunita Kapoor",          role: "Villa Owner, Vasant Vihar", init: "SK" },
-  { q: "From the marble flooring to the hand-picked art — every element felt intentional. This is what real interior architecture looks like.",               name: "Vikram & Naina Sharma", role: "Penthouse, Lutyens Delhi",  init: "VS" },
-];
-
-export default function Home() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [navSolid, setNavSolid] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [backTop,  setBackTop]  = useState(false);
-  const [counters, setCounters] = useState(false);
-  const [clock,    setClock]    = useState("");
-  const [lightbox, setLightbox] = useState<string | null>(null);
-  const [heroIdx,  setHeroIdx]  = useState(0);
-
-  const heroImgs = ["/images/p2.webp", "/images/p12.webp", "/images/p13.webp"];
-
+  /* scroll */
   useEffect(() => {
     let raf = 0;
-    const h = () => {
+    const fn = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         const y = window.scrollY;
-        const d = document.documentElement.scrollHeight - window.innerHeight;
-        setNavSolid(y > 80); setBackTop(y > 600);
-        setProgress(d > 0 ? (y / d) * 100 : 0);
-        const el = document.getElementById("stats");
-        if (el && !counters && el.getBoundingClientRect().top < window.innerHeight * 0.85) setCounters(true);
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        setSolid(y > 60);
+        setBtt(y > 500);
+        setPct(h > 0 ? (y / h) * 100 : 0);
+        if (!ticking && document.getElementById("numbers")?.getBoundingClientRect().top! < window.innerHeight * 0.85) setTicking(true);
       });
     };
-    window.addEventListener("scroll", h, { passive: true });
-    return () => { window.removeEventListener("scroll", h); cancelAnimationFrame(raf); };
-  }, [counters]);
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => { window.removeEventListener("scroll", fn); cancelAnimationFrame(raf); };
+  }, [ticking]);
 
+  /* clock */
   useEffect(() => {
-    const tick = () => {
+    const t = () => {
       const utc = Date.now() + new Date().getTimezoneOffset() * 60000;
       const ist = new Date(utc + 19800000);
-      const p = (n: number) => n.toString().padStart(2, "0");
+      const p = (n: number) => String(n).padStart(2, "0");
       setClock(`${p(ist.getHours())}:${p(ist.getMinutes())} IST`);
     };
-    tick(); const id = setInterval(tick, 1000); return () => clearInterval(id);
+    t(); const id = setInterval(t, 1000); return () => clearInterval(id);
   }, []);
 
+  /* hero slideshow */
   useEffect(() => {
-    const id = setInterval(() => setHeroIdx(i => (i + 1) % heroImgs.length), 5500);
+    const id = setInterval(() => setHero(i => (i + 1) % heroImgs.length), 5000);
     return () => clearInterval(id);
   }, []);
 
+  /* esc */
   useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === "Escape") { setMenuOpen(false); setLightbox(null); } };
-    window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h);
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") { setMenu(false); setLb(null); } };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
   }, []);
+
+  /* counter */
+  function Counter({ to, suf, label }: { to: number; suf: string; label: string }) {
+    const [v, setV] = useState(0);
+    const done = useRef(false);
+    useEffect(() => {
+      if (!ticking || done.current) return;
+      done.current = true;
+      let c = 0;
+      const step = Math.ceil(to / 50);
+      const id = setInterval(() => { c = Math.min(c + step, to); setV(c); if (c >= to) clearInterval(id); }, 20);
+      return () => clearInterval(id);
+    }, [ticking]);
+    return (
+      <FadeIn className="text-center" style={{ padding: "32px 20px", background: BG3, border: `1px solid rgba(184,154,106,.1)` }}>
+        <span style={{ ...SERIF, display: "block", fontSize: 52, fontWeight: 300, color: CREAM, lineHeight: 1 }}>{v}{suf}</span>
+        <span style={{ ...SANS, display: "block", fontSize: 9, letterSpacing: "0.28em", textTransform: "uppercase" as const, color: GOLD, marginTop: 8 }}>{label}</span>
+      </FadeIn>
+    );
+  }
+
+  const projects = [
+    { img: "/images/p2.webp",  title: "The Classical Residence", loc: "South Delhi",     year: "2024", tag: "Residential" },
+    { img: "/images/p12.webp", title: "The Chandelier Suite",    loc: "Greater Kailash", year: "2024", tag: "Dining"       },
+    { img: "/images/p1.webp",  title: "Contemporary Villa",      loc: "Gurugram",        year: "2024", tag: "Residential" },
+    { img: "/images/p14.webp", title: "The Grey Manor",          loc: "Lutyens Delhi",   year: "2023", tag: "Apartment"   },
+    { img: "/images/p10.webp", title: "Walnut Study",            loc: "Vasant Vihar",    year: "2023", tag: "Commercial"  },
+    { img: "/images/p13.webp", title: "Marble Pavilion",         loc: "Defence Colony",  year: "2022", tag: "Residential" },
+  ];
+
+  const gallery = [
+    { img: "/images/p3.webp",  label: "Heritage Corridor",  tall: true  },
+    { img: "/images/p5.webp",  label: "Open Plan Living",   tall: false },
+    { img: "/images/p4.webp",  label: "Burgundy Alcove",    tall: false },
+    { img: "/images/p7.webp",  label: "Classical Seating",  tall: false },
+    { img: "/images/p6.webp",  label: "Walnut Interior",    tall: false },
+    { img: "/images/p11.webp", label: "Gallery Corridor",   tall: true  },
+  ];
+
+  const testimonials = [
+    { q: "Craftmen Studio transformed our home into something we could never have imagined. Every detail was considered with absolute care.", name: "Priya & Arjun Mehra", role: "South Delhi", init: "PM" },
+    { q: "The classical living room they designed has become the soul of our home. Every guest asks about it without fail.", name: "Sunita Kapoor", role: "Vasant Vihar", init: "SK" },
+    { q: "From marble flooring to hand-picked art — every element felt intentional. This is what real interior architecture looks like.", name: "Vikram Sharma", role: "Lutyens Delhi", init: "VS" },
+  ];
+
+  const sec: React.CSSProperties = { padding: "96px 64px" };
+  const secDark: React.CSSProperties = { ...sec, background: BG2 };
 
   return (
     <>
-      {/* Progress */}
-      <div className="fixed top-0 left-0 h-[2px] z-[9999] pointer-events-none"
-        style={{ width: `${progress}%`, background: "linear-gradient(to right, #9a7a4a, #c9a96e, #e2c898)", transition: "width .15s ease" }} />
+      {/* font import */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; overflow-x: hidden; }
+        body { background: #0a0908; color: #f2ede7; font-family: Jost, sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        ::selection { background: #b89a6a; color: #0a0908; }
+        ::-webkit-scrollbar { width: 2px; }
+        ::-webkit-scrollbar-track { background: #0a0908; }
+        ::-webkit-scrollbar-thumb { background: #b89a6a; border-radius: 2px; }
+        details summary { list-style: none; cursor: pointer; }
+        details summary::-webkit-details-marker { display: none; }
+        a { text-decoration: none; }
+        img { display: block; }
+        @keyframes sb { 0%{transform:translateY(-100%);opacity:0} 30%{opacity:1} 70%{opacity:1} 100%{transform:translateY(250%);opacity:0} }
+        @keyframes mq { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+        @keyframes pp { 0%,100%{box-shadow:0 0 0 4px rgba(184,154,106,.25),0 0 0 8px rgba(184,154,106,.08)} 50%{box-shadow:0 0 0 8px rgba(184,154,106,.15),0 0 0 16px rgba(184,154,106,.04)} }
+        @media(max-width:768px) {
+          .hide-mob { display: none !important; }
+          .sec-pad  { padding: 64px 20px !important; }
+          .hero-txt  { padding: 0 20px 80px !important; }
+          .grid-4   { grid-template-columns: 1fr 1fr !important; }
+          .grid-3   { grid-template-columns: 1fr !important; }
+          .grid-2   { grid-template-columns: 1fr !important; }
+          .bento    { grid-template-columns: 1fr !important; grid-auto-rows: 280px !important; }
+          .svc-grid { grid-template-columns: 1fr !important; }
+          .about-grid { grid-template-columns: 1fr !important; }
+          .ft-top   { flex-direction: column !important; }
+          .ft-cols  { flex-direction: column !important; gap: 24px !important; }
+          .contact-grid { grid-template-columns: 1fr !important; }
+          .faq-grid  { grid-template-columns: 1fr !important; }
+          .nav-inner { padding: 14px 20px !important; }
+        }
+      `}</style>
 
-      {/* Back to top */}
+      {/* progress */}
+      <div style={{ position: "fixed", top: 0, left: 0, height: 2, zIndex: 9999, width: `${pct}%`, background: `linear-gradient(to right, #8a7050, #b89a6a, #d4b896)`, transition: "width .12s ease", pointerEvents: "none" }} />
+
+      {/* back to top */}
       <AnimatePresence>
-        {backTop && (
-          <motion.button className="fixed bottom-8 right-8 z-[400] w-11 h-11 flex items-center justify-center text-base border-0 cursor-pointer transition-colors duration-300"
-            style={{ background: "#0d0b08", border: "1px solid rgba(201,169,110,0.4)", color: "#c9a96e" }}
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
+        {btt && (
+          <motion.button
+            style={{ position: "fixed", bottom: 28, right: 28, zIndex: 400, width: 44, height: 44, background: BG3, border: `1px solid rgba(184,154,106,.35)`, color: GOLD, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>↑</motion.button>
         )}
       </AnimatePresence>
 
-      {/* ══ NAVBAR ══ */}
-      <nav className="fixed top-0 w-full z-[500] flex items-center gap-5 transition-all duration-400"
-        style={{
-          padding: navSolid ? "12px 56px" : "20px 56px",
-          background: navSolid ? "rgba(13,11,8,0.94)" : "transparent",
-          backdropFilter: navSolid ? "blur(24px)" : "none",
-          borderBottom: navSolid ? "1px solid rgba(201,169,110,0.12)" : "none",
-        }}>
-        <a href="#" className="mr-auto flex-shrink-0 flex items-center gap-3 no-underline">
-          <img src="/images/logo.webp" alt="Craftmen Studio" className="w-10 h-10 rounded-full object-cover" />
-          <div className="hidden md:flex flex-col leading-none">
-            <span className="font-sans text-[8px] tracking-[0.5em] uppercase" style={{ color: "#c9a96e" }}>Interior Architecture</span>
-            <span className="font-serif text-[18px] font-light" style={{ color: "#faf6f0" }}>Craftmen Studio</span>
+      {/* ══════════════════ NAVBAR ══════════════════ */}
+      <nav className="nav-inner" style={{
+        position: "fixed", top: 0, width: "100%", zIndex: 500,
+        display: "flex", alignItems: "center", gap: 24, padding: solid ? "12px 64px" : "20px 64px",
+        background: solid ? "rgba(10,9,8,.94)" : "transparent",
+        backdropFilter: solid ? "blur(20px)" : "none",
+        borderBottom: solid ? "1px solid rgba(184,154,106,.1)" : "none",
+        transition: "all .35s ease",
+      }}>
+        <a href="#" style={{ marginRight: "auto", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+          <img src="/images/logo.webp" alt="Craftmen Studio" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }} />
+          <div className="hide-mob" style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
+            <span style={{ ...SANS, fontSize: 8, letterSpacing: "0.5em", textTransform: "uppercase", color: GOLD }}>Interior Architecture</span>
+            <span style={{ ...SERIF, fontSize: 18, fontWeight: 300, color: CREAM }}>Craftmen Studio</span>
           </div>
         </a>
-        <div className="hidden md:flex items-center gap-1 rounded-full py-1 px-1"
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" }}>
+
+        {/* pill nav */}
+        <div className="hide-mob" style={{ display: "flex", alignItems: "center", gap: 2, borderRadius: 100, padding: "4px", background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}>
           {["Projects","Process","Services","About","Contact"].map(n => (
             <a key={n} href={`#${n.toLowerCase()}`}
-              className="font-sans text-[10px] tracking-[0.18em] uppercase px-4 py-2 rounded-full no-underline transition-colors duration-300"
-              style={{ color: "rgba(250,246,240,0.55)" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#faf6f0")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(250,246,240,0.55)")}>{n}</a>
+              style={{ ...SANS, fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(242,237,231,.55)", padding: "7px 16px", borderRadius: 100, transition: "color .25s" }}
+              onMouseEnter={e => (e.currentTarget.style.color = CREAM)}
+              onMouseLeave={e => (e.currentTarget.style.color = "rgba(242,237,231,.55)")}>{n}</a>
           ))}
         </div>
-        <span className="hidden lg:block font-sans text-[10px] tracking-[0.14em]" style={{ color: "#5a5248" }}>{clock}</span>
-        <a href="#contact" className="hidden md:inline-flex font-sans text-[9px] tracking-[0.26em] uppercase px-5 py-2.5 no-underline flex-shrink-0 transition-colors duration-300"
-          style={{ background: "#c9a96e", color: "#0d0b08" }}
-          onMouseEnter={e => (e.currentTarget.style.background = "#e2c898")}
-          onMouseLeave={e => (e.currentTarget.style.background = "#c9a96e")}>Enquire</a>
-        <button className="md:hidden flex flex-col gap-[5px] bg-transparent border-0 cursor-pointer p-1"
-          onClick={() => setMenuOpen(true)}>
-          <span className="block w-6 h-px" style={{ background: "#faf6f0" }} />
-          <span className="block w-6 h-px" style={{ background: "#faf6f0" }} />
-          <span className="block w-6 h-px" style={{ background: "#faf6f0" }} />
+
+        <span className="hide-mob" style={{ ...SANS, fontSize: 10, letterSpacing: "0.14em", color: "#4a4845" }}>{clock}</span>
+
+        <a href="#contact" className="hide-mob"
+          style={{ ...SANS, fontSize: 9, letterSpacing: "0.26em", textTransform: "uppercase", background: GOLD, color: BG, padding: "10px 22px", flexShrink: 0, transition: "background .25s" }}
+          onMouseEnter={e => (e.currentTarget.style.background = GOLD2)}
+          onMouseLeave={e => (e.currentTarget.style.background = GOLD)}>Enquire</a>
+
+        <button style={{ display: "none" }} className="hide-mob" />
+        <button
+          style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", flexDirection: "column", gap: 5 }}
+          onClick={() => setMenu(true)}>
+          <span style={{ display: "block", width: 24, height: 1, background: CREAM }} />
+          <span style={{ display: "block", width: 24, height: 1, background: CREAM }} />
+          <span style={{ display: "block", width: 24, height: 1, background: CREAM }} />
         </button>
       </nav>
 
-      {/* ══ MOBILE MENU ══ */}
+      {/* ══════════════════ MOBILE MENU ══════════════════ */}
       <AnimatePresence>
-        {menuOpen && (
-          <motion.div className="fixed inset-0 z-[800] flex flex-col justify-center px-10 py-20"
-            style={{ background: "#0d0b08" }}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <button className="absolute top-6 right-10 bg-transparent border-0 cursor-pointer"
-              style={{ color: "#c9a96e" }} onClick={() => setMenuOpen(false)}><X size={26} /></button>
+        {menu && (
+          <motion.div style={{ position: "fixed", inset: 0, zIndex: 800, background: BG2, display: "flex", flexDirection: "column", justifyContent: "center", padding: "80px 40px" }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+            <button style={{ position: "absolute", top: 24, right: 40, background: "none", border: "none", cursor: "pointer", color: GOLD }} onClick={() => setMenu(false)}>
+              <X size={26} />
+            </button>
             {["Projects","Process","Services","About","Contact"].map((n, i) => (
               <motion.a key={n} href={`#${n.toLowerCase()}`}
-                className="flex items-center gap-4 py-4 no-underline transition-colors duration-300"
-                style={{ borderBottom: "1px solid rgba(201,169,110,0.1)", color: "#faf6f0" }}
-                initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.07 }} onClick={() => setMenuOpen(false)}
-                onMouseEnter={e => (e.currentTarget.style.color = "#c9a96e")}
-                onMouseLeave={e => (e.currentTarget.style.color = "#faf6f0")}>
-                <span className="font-sans text-[9px] tracking-[0.22em]" style={{ color: "#c9a96e" }}>0{i + 1}</span>
-                <span className="font-serif text-[38px] font-light flex-1">{n}</span>
-                <ArrowRight size={18} style={{ color: "#c9a96e" }} />
+                style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 0", borderBottom: "1px solid rgba(184,154,106,.1)", color: CREAM, transition: "color .25s" }}
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.07 }} onClick={() => setMenu(false)}
+                onMouseEnter={e => (e.currentTarget.style.color = GOLD)}
+                onMouseLeave={e => (e.currentTarget.style.color = CREAM)}>
+                <span style={{ ...SANS, fontSize: 9, letterSpacing: "0.22em", color: GOLD, width: 24 }}>0{i + 1}</span>
+                <span style={{ ...SERIF, fontSize: 38, fontWeight: 300, flex: 1 }}>{n}</span>
+                <ArrowRight size={18} color={GOLD} />
               </motion.a>
             ))}
-            <div className="absolute bottom-8 left-10 font-sans text-[11px] flex flex-col gap-1" style={{ color: "#5a5248" }}>
+            <div style={{ position: "absolute", bottom: 32, left: 40, ...SANS, fontSize: 11, color: "#4a4845", display: "flex", flexDirection: "column", gap: 4 }}>
               <span>+91 98717 66962</span>
               <span>350, MG Rd, Sultanpur, New Delhi 110030</span>
             </div>
@@ -294,183 +267,139 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* ══ HERO — CINEMATIC SLIDESHOW ══ */}
-      <section id="hero" className="relative flex items-end overflow-hidden" style={{ height: "100vh", minHeight: "700px" }}>
+      {/* ══════════════════ HERO ══════════════════ */}
+      <section id="hero" style={{ position: "relative", height: "100vh", minHeight: 700, display: "flex", alignItems: "flex-end", overflow: "hidden" }}>
         {heroImgs.map((src, i) => (
-          <motion.div key={src} className="absolute inset-0"
-            initial={{ opacity: 0 }} animate={{ opacity: i === heroIdx ? 1 : 0 }}
+          <motion.div key={src} style={{ position: "absolute", inset: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: i === hero ? 1 : 0 }}
             transition={{ duration: 1.5, ease: "easeInOut" }}>
-            <img src={src} alt="" className="w-full h-full object-cover" />
+            <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </motion.div>
         ))}
-        <div className="absolute inset-0 z-[1]"
-          style={{ background: "linear-gradient(135deg, rgba(13,11,8,0.88) 0%, rgba(13,11,8,0.42) 55%, rgba(13,11,8,0.7) 100%)" }} />
-        <div className="absolute inset-0 z-[2]"
-          style={{ background: "linear-gradient(to top, rgba(13,11,8,0.95) 0%, transparent 48%)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(130deg, rgba(10,9,8,.9) 0%, rgba(10,9,8,.4) 55%, rgba(10,9,8,.7) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,9,8,.97) 0%, transparent 50%)" }} />
 
-        <div className="relative z-[3] w-full max-w-[1100px] px-14 pb-24">
-          <FadeIn delay={0.2}><Eyebrow text="New Delhi · Est. 2019 · Interior Architecture" dark /></FadeIn>
-          <h1 className="font-serif font-light leading-none mb-7" style={{ color: "#faf6f0", fontSize: "clamp(58px,9.5vw,140px)" }}>
-            <FadeIn delay={0.35}><span className="block">Spaces That</span></FadeIn>
-            <FadeIn delay={0.55}><span className="block italic pl-16" style={{ color: "#e2c898" }}>Tell Stories</span></FadeIn>
+        <div className="hero-txt" style={{ position: "relative", zIndex: 2, padding: "0 64px 96px", maxWidth: 1000, width: "100%" }}>
+          <FadeIn delay={0.1}><Label text="New Delhi · Est. 2019 · Interior Architecture" /></FadeIn>
+          <h1 style={{ ...SERIF, fontWeight: 300, lineHeight: 0.92, color: CREAM, marginBottom: 24 }}>
+            <FadeIn delay={0.25}><span style={{ display: "block", fontSize: "clamp(64px,10vw,148px)" }}>Spaces That</span></FadeIn>
+            <FadeIn delay={0.45}><span style={{ display: "block", fontSize: "clamp(64px,10vw,148px)", fontStyle: "italic", color: GOLD2, paddingLeft: "clamp(32px,5vw,80px)" }}>Tell Stories</span></FadeIn>
           </h1>
-          <FadeIn delay={0.72}>
-            <p className="font-sans font-light text-sm leading-[1.85] max-w-[380px] mb-10" style={{ color: "rgba(250,246,240,0.6)" }}>
-              We craft bespoke interiors where Indian craftsmanship meets refined contemporary design. Every space, a reflection of the life lived within it.
+          <FadeIn delay={0.65}>
+            <p style={{ ...SANS, fontSize: 14, fontWeight: 300, color: "rgba(242,237,231,.58)", lineHeight: 1.8, maxWidth: 380, marginBottom: 32 }}>
+              Bespoke interior architecture rooted in Indian craft and refined by a contemporary spatial sensibility.
             </p>
           </FadeIn>
-          <FadeIn delay={0.88}>
-            <div className="flex items-center gap-6 mb-12">
-              <a href="#projects" className="inline-flex items-center gap-3 font-sans text-[10px] font-medium tracking-[0.22em] uppercase px-7 py-4 no-underline transition-all duration-300 hover:gap-5"
-                style={{ background: "#c9a96e", color: "#0d0b08" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#e2c898")}
-                onMouseLeave={e => (e.currentTarget.style.background = "#c9a96e")}>
+          <FadeIn delay={0.8}>
+            <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 40 }}>
+              <a href="#projects"
+                style={{ ...SANS, fontSize: 10, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", background: GOLD, color: BG, padding: "14px 28px", display: "inline-flex", alignItems: "center", gap: 12, transition: "all .3s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = GOLD2; e.currentTarget.style.gap = "18px"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = GOLD; e.currentTarget.style.gap = "12px"; }}>
                 View Our Work <ArrowRight size={14} />
               </a>
-              <a href="#about" className="font-sans text-[11px] tracking-[0.14em] no-underline transition-colors duration-300"
-                style={{ color: "rgba(250,246,240,0.4)" }}
-                onMouseEnter={e => (e.currentTarget.style.color = "#c9a96e")}
-                onMouseLeave={e => (e.currentTarget.style.color = "rgba(250,246,240,0.4)")}>Our Philosophy →</a>
+              <a href="#about"
+                style={{ ...SANS, fontSize: 11, letterSpacing: "0.14em", color: "rgba(242,237,231,.38)", transition: "color .3s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = GOLD)}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(242,237,231,.38)")}>Our Practice →</a>
             </div>
           </FadeIn>
-          <FadeIn delay={1.0}>
-            <div className="flex items-center max-w-[340px] pt-6" style={{ borderTop: "1px solid rgba(201,169,110,0.2)" }}>
+          <FadeIn delay={0.95}>
+            <div style={{ display: "flex", alignItems: "center", paddingTop: 24, borderTop: "1px solid rgba(184,154,106,.18)", maxWidth: 340 }}>
               {[["24+","Projects"],["5+","Years"],["100%","Bespoke"]].map(([n, l], i) => (
-                <div key={l} className="flex-1 pr-4 mr-4"
-                  style={{ borderRight: i < 2 ? "1px solid rgba(201,169,110,0.2)" : "none" }}>
-                  <span className="block font-serif text-[28px] font-light leading-none" style={{ color: "#faf6f0" }}>{n}</span>
-                  <span className="block font-sans text-[8px] tracking-[0.25em] uppercase mt-1" style={{ color: "#c9a96e" }}>{l}</span>
+                <div key={l} style={{ flex: 1, paddingRight: i < 2 ? 16 : 0, marginRight: i < 2 ? 16 : 0, borderRight: i < 2 ? "1px solid rgba(184,154,106,.18)" : "none" }}>
+                  <span style={{ ...SERIF, display: "block", fontSize: 28, fontWeight: 300, color: CREAM, lineHeight: 1 }}>{n}</span>
+                  <span style={{ ...SANS, display: "block", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase" as const, color: GOLD, marginTop: 5 }}>{l}</span>
                 </div>
               ))}
             </div>
           </FadeIn>
         </div>
 
-        {/* Slide dots */}
-        <div className="absolute bottom-10 right-14 z-[3] flex gap-2">
+        {/* slide dots */}
+        <div style={{ position: "absolute", bottom: 36, right: 64, zIndex: 2, display: "flex", gap: 8 }}>
           {heroImgs.map((_, i) => (
-            <button key={i} onClick={() => setHeroIdx(i)} className="h-px cursor-pointer border-0 transition-all duration-500"
-              style={{ width: i === heroIdx ? "32px" : "16px", background: i === heroIdx ? "#c9a96e" : "rgba(201,169,110,0.3)" }} />
+            <button key={i} onClick={() => setHero(i)} style={{ height: 1, border: "none", cursor: "pointer", transition: "all .4s", width: i === hero ? 32 : 14, background: i === hero ? GOLD : "rgba(184,154,106,.3)" }} />
           ))}
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute right-14 bottom-28 z-[3] flex flex-col items-center gap-3 font-sans text-[8px] tracking-[0.35em] uppercase"
-          style={{ color: "#5a5248" }}>
-          <div className="w-px h-12 overflow-hidden relative" style={{ background: "rgba(250,246,240,0.1)" }}>
-            <div className="w-px h-[40%] absolute" style={{ background: "#c9a96e", animation: "scrollBar 2.2s ease infinite" }} />
+        {/* scroll rail */}
+        <div style={{ position: "absolute", right: 64, bottom: 120, zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, ...SANS, fontSize: 8, letterSpacing: "0.35em", textTransform: "uppercase" as const, color: "#4a4845" }}>
+          <div style={{ width: 1, height: 48, background: "rgba(242,237,231,.1)", overflow: "hidden", position: "relative" }}>
+            <div style={{ width: 1, height: "40%", background: GOLD, position: "absolute", animation: "sb 2.2s ease infinite" }} />
           </div>
           <span>Scroll</span>
         </div>
-
-        <div className="absolute bottom-0 left-0 right-0 z-[3] hidden md:flex justify-center gap-4 py-3 font-sans text-[9px] tracking-[0.28em] uppercase"
-          style={{ background: "rgba(13,11,8,0.5)", backdropFilter: "blur(10px)", borderTop: "1px solid rgba(201,169,110,0.1)", color: "rgba(250,246,240,0.28)" }}>
-          <span>Interior Architecture</span>
-          <span style={{ color: "#c9a96e", fontSize: "6px" }}>◆</span>
-          <span>Spatial Design</span>
-          <span style={{ color: "#c9a96e", fontSize: "6px" }}>◆</span>
-          <span>New Delhi</span>
-        </div>
       </section>
 
-      {/* ══ MARQUEE ══ */}
-      <div className="overflow-hidden py-3" style={{ background: "#0d0b08", borderTop: "1px solid rgba(201,169,110,0.12)", borderBottom: "1px solid rgba(201,169,110,0.12)" }}>
-        <div className="flex w-max" style={{ animation: "marquee 42s linear infinite" }}>
+      {/* ── marquee ── */}
+      <div style={{ overflow: "hidden", background: BG2, borderTop: "1px solid rgba(184,154,106,.1)", borderBottom: "1px solid rgba(184,154,106,.1)", padding: "12px 0" }}>
+        <div style={{ display: "flex", width: "max-content", animation: "mq 40s linear infinite" }}>
           {Array(10).fill(null).map((_, i) => (
-            <span key={i} className="flex items-center gap-4 px-2 font-sans text-[9.5px] tracking-[0.28em] uppercase whitespace-nowrap"
-              style={{ color: "#5a5248" }}>
-              <span style={{ color: "#c9a96e", fontSize: "7px" }}>◈</span><span>Residential Design</span>
-              <span style={{ color: "#c9a96e", fontSize: "7px" }}>◈</span><span>Commercial Interiors</span>
-              <span style={{ color: "#c9a96e", fontSize: "7px" }}>◈</span><span>Turnkey Projects</span>
-              <span style={{ color: "#c9a96e", fontSize: "7px" }}>◈</span><span>Luxury Spaces</span>
+            <span key={i} style={{ ...SANS, display: "flex", alignItems: "center", gap: 16, padding: "0 8px", fontSize: 9.5, letterSpacing: "0.28em", textTransform: "uppercase" as const, color: "#4a4845", whiteSpace: "nowrap" as const }}>
+              <span style={{ color: GOLD, fontSize: 7 }}>◈</span>Residential Design
+              <span style={{ color: GOLD, fontSize: 7 }}>◈</span>Commercial Interiors
+              <span style={{ color: GOLD, fontSize: 7 }}>◈</span>Turnkey Projects
+              <span style={{ color: GOLD, fontSize: 7 }}>◈</span>Luxury Spaces
             </span>
           ))}
         </div>
       </div>
 
-      {/* ══ CONTAINER SCROLL SHOWCASE ══ */}
-      <div style={{ background: "#faf6f0" }}>
-        <ContainerScroll titleComponent={
-          <div>
-            <FadeIn><Eyebrow text="Our Work" /></FadeIn>
-            <FadeIn delay={0.1}>
-              <h2 className="font-serif font-light" style={{ color: "#1a1510", fontSize: "clamp(36px,5vw,70px)", lineHeight: 1.0 }}>
-                Designed to be<br /><em className="italic" style={{ color: "#9a7a4a" }}>Remembered</em>
-              </h2>
-            </FadeIn>
-          </div>
-        }>
-          <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl" style={{ background: "#1a1510", boxShadow: "0 60px 120px rgba(0,0,0,0.4)" }}>
-            {["/images/p2.webp","/images/p12.webp","/images/p1.webp",
-              "/images/p14.webp","/images/p10.webp","/images/p13.webp"].map((src, i) => (
-              <div key={i} className="overflow-hidden rounded-xl cursor-pointer group"
-                style={{ aspectRatio: i === 0 || i === 3 ? "4/3" : "16/9" }}
-                onClick={() => setLightbox(src)}>
-                <img src={src} alt={`Project ${i + 1}`} loading={i < 2 ? "eager" : "lazy"}
-                  className="w-full h-full object-cover transition-transform duration-[1100ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.07]" />
-              </div>
-            ))}
-          </div>
-        </ContainerScroll>
-      </div>
-
-      {/* ══ STATS ══ */}
-      <section id="stats" className="px-14 py-20" style={{ background: "#f0ebe2" }}>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-[2px] max-w-4xl mx-auto mb-14">
-          <Counter to={24}  suffix="+" label="Projects Completed" active={counters} />
-          <Counter to={5}   suffix="+" label="Years of Practice"  active={counters} />
-          <Counter to={100} suffix="%" label="Bespoke Design"     active={counters} />
-          <Counter to={14}  suffix=""  label="Industry Awards"    active={counters} />
+      {/* ══════════════════ STATS ══════════════════ */}
+      <section id="numbers" style={{ ...secDark }} className="sec-pad">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 2, marginBottom: 56 }} className="grid-4">
+          <Counter to={24}  suf="+" label="Projects Completed" />
+          <Counter to={5}   suf="+" label="Years of Practice"  />
+          <Counter to={100} suf="%" label="Bespoke Design"     />
+          <Counter to={14}  suf=""  label="Industry Awards"    />
         </div>
-        <FadeIn className="flex items-center gap-8 max-w-3xl mx-auto">
-          <span className="flex-1 h-px" style={{ background: "rgba(154,122,74,0.25)" }} />
-          <p className="font-serif text-[18px] font-light text-center leading-[1.7] flex-shrink-0 max-w-[480px]" style={{ color: "#5a5248" }}>
-            We design for the way you live — not the way a magazine says you should.
-            <em className="italic" style={{ color: "#9a7a4a" }}> Every room, a considered decision.</em>
+        <FadeIn style={{ display: "flex", alignItems: "center", gap: 32 }}>
+          <span style={{ flex: 1, height: 1, background: "rgba(184,154,106,.14)" }} />
+          <p style={{ ...SERIF, fontSize: 19, fontWeight: 300, color: GRAY, textAlign: "center", maxWidth: 500, lineHeight: 1.7, flexShrink: 0 }}>
+            Every project begins with a single question:<br />
+            <em style={{ color: GOLD2, fontStyle: "italic" }}>How do you want to feel when you come home?</em>
           </p>
-          <span className="flex-1 h-px" style={{ background: "rgba(154,122,74,0.25)" }} />
+          <span style={{ flex: 1, height: 1, background: "rgba(184,154,106,.14)" }} />
         </FadeIn>
       </section>
 
-      {/* ══ PROJECTS BENTO ══ */}
-      <section id="projects" className="px-14 py-24" style={{ background: "#faf6f0" }}>
-        <FadeIn><Eyebrow text="Selected Work / 2022–2024" /></FadeIn>
-        <div className="flex items-start gap-16 mb-12">
+      {/* ══════════════════ PROJECTS ══════════════════ */}
+      <section id="projects" style={{ ...sec, background: BG }} className="sec-pad">
+        <FadeIn><Label text="Selected Work · 2022–2024" /></FadeIn>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 64, marginBottom: 48 }}>
           <FadeIn>
-            <h2 className="font-serif font-light leading-[1.0]" style={{ color: "#1a1510", fontSize: "clamp(42px,5.5vw,80px)" }}>
-              Case <em className="italic" style={{ color: "#9a7a4a" }}>Studies</em>
+            <h2 style={{ ...SERIF, fontSize: "clamp(40px,5.5vw,80px)", fontWeight: 300, lineHeight: 1, color: CREAM }}>
+              Case <em style={{ fontStyle: "italic", color: GOLD2 }}>Studies</em>
             </h2>
           </FadeIn>
-          <FadeIn delay={0.1} className="font-sans text-sm font-light leading-[1.85] max-w-[360px] pt-3" style={{ color: "#8a8278" }}>
-            Six projects that define the Craftmen language — where heritage craft meets the demands of modern luxury living.
+          <FadeIn delay={0.1} style={{ ...SANS, fontSize: 14, fontWeight: 300, color: GRAY, lineHeight: 1.85, maxWidth: 360, paddingTop: 10 }}>
+            Six spaces that define our range — from intimate master suites to sprawling villas.
           </FadeIn>
         </div>
-        <div className="grid grid-cols-12 gap-[3px]" style={{ gridAutoRows: "400px" }}>
-          {PROJECTS.map((p, i) => {
-            const spans = ["col-span-7","col-span-5","col-span-5","col-span-7","col-span-6","col-span-6"];
-            const offsets = ["","","","","",""] as const;
+
+        {/* bento */}
+        <div className="bento" style={{ display: "grid", gridTemplateColumns: "repeat(12,1fr)", gap: 3, gridAutoRows: 400 }}>
+          {projects.map((p, i) => {
+            const cols = ["7","5","5","7","6","6"];
+            const mt   = i === 2 ? "60px" : "0px";
             return (
               <FadeIn key={i} delay={i * 0.07}
-                className={`${spans[i]} relative overflow-hidden group cursor-pointer`}
-                style={{ background: "#e8e2d8", marginTop: i === 2 ? "64px" : "0" } as React.CSSProperties}
-                onClick={() => setLightbox(p.img)}>
+                style={{ gridColumn: `span ${cols[i]}`, marginTop: mt, position: "relative", overflow: "hidden", cursor: "pointer", background: BG3 } as React.CSSProperties}
+                className="proj-card"
+                onClick={() => setLb(p.img)}>
                 <img src={p.img} alt={p.title} loading="lazy"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1100ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]" />
-                <div className="absolute inset-0 transition-opacity duration-500"
-                  style={{ background: "linear-gradient(to top, rgba(13,11,8,0.85) 0%, rgba(13,11,8,0.1) 50%, transparent 100%)" }} />
-                <span className="absolute top-4 right-4 font-sans text-[8px] tracking-[0.22em] uppercase z-10 px-2.5 py-1.5"
-                  style={{ background: "#c9a96e", color: "#0d0b08" }}>{p.cat}</span>
-                <div className="absolute bottom-0 left-0 right-0 p-5 z-10 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                  <div className="flex gap-3 mb-1.5 font-sans text-[9px]" style={{ color: "#c9a96e" }}>
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transition: "transform 1.1s cubic-bezier(.16,1,.3,1)" }}
+                  onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.06)")}
+                  onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,9,8,.88) 0%, rgba(10,9,8,.08) 50%, transparent 100%)" }} />
+                <span style={{ position: "absolute", top: 14, right: 14, ...SANS, fontSize: 8, letterSpacing: "0.2em", textTransform: "uppercase" as const, background: GOLD, color: BG, padding: "4px 10px", zIndex: 2 }}>{p.tag}</span>
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: 20, zIndex: 2 }}>
+                  <div style={{ ...SANS, fontSize: 9, color: GOLD, display: "flex", gap: 12, marginBottom: 6 }}>
                     <span>{p.year}</span>
-                    <span style={{ color: "#8a8278" }}>{p.area}</span>
                   </div>
-                  <h3 className="font-serif text-[22px] font-light leading-tight" style={{ color: "#faf6f0" }}>{p.title}</h3>
-                  <p className="font-sans text-[10px] mt-1" style={{ color: "#8a8278" }}>{p.loc}</p>
-                  <div className="flex items-center gap-2 mt-3 font-sans text-[9px] tracking-[0.2em] uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75"
-                    style={{ color: "#c9a96e" }}>
-                    <span>View Project</span><ArrowRight size={12} />
-                  </div>
+                  <h3 style={{ ...SERIF, fontSize: 22, fontWeight: 300, color: CREAM, lineHeight: 1.2 }}>{p.title}</h3>
+                  <p style={{ ...SANS, fontSize: 10, color: GRAY, marginTop: 3 }}>{p.loc}</p>
                 </div>
               </FadeIn>
             );
@@ -478,97 +407,96 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══ INTERLUDE ══ */}
-      <div className="relative flex items-center justify-center overflow-hidden" style={{ height: "480px" }}>
-        <img src="/images/p8.webp" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ transform: "scale(1.08)" }} />
-        <div className="absolute inset-0" style={{ background: "rgba(13,11,8,0.76)" }} />
-        <FadeIn className="relative z-10 text-center px-8 max-w-[680px]">
-          <span className="font-serif text-[72px] block leading-[0.5] mb-2" style={{ color: "#c9a96e", opacity: 0.2 }}>"</span>
-          <p className="font-serif font-light italic leading-[1.5]" style={{ color: "#faf6f0", fontSize: "clamp(22px,3vw,40px)" }}>
+      {/* ══════════════════ QUOTE BREAK ══════════════════ */}
+      <div style={{ position: "relative", height: 460, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+        <img src="/images/p8.webp" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.07)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(10,9,8,.78)" }} />
+        <FadeIn style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "0 32px", maxWidth: 680 }}>
+          <span style={{ ...SERIF, fontSize: 72, color: GOLD, opacity: 0.18, display: "block", lineHeight: 0.5, marginBottom: 8 }}>"</span>
+          <p style={{ ...SERIF, fontSize: "clamp(20px,2.8vw,38px)", fontWeight: 300, fontStyle: "italic", color: CREAM, lineHeight: 1.5 }}>
             We believe a home should feel like an extension of the person who lives in it — not a showroom.
           </p>
-          <span className="block font-sans text-[9px] tracking-[0.3em] uppercase mt-6" style={{ color: "#c9a96e" }}>
+          <span style={{ ...SANS, display: "block", fontSize: 9, letterSpacing: "0.3em", textTransform: "uppercase" as const, color: GOLD, marginTop: 24 }}>
             — Founder, Craftmen Studio
           </span>
         </FadeIn>
       </div>
 
-      {/* ══ PROCESS ══ */}
-      <section id="process" className="px-14 py-24" style={{ background: "#f0ebe2" }}>
-        <FadeIn><Eyebrow text="How We Work" /></FadeIn>
+      {/* ══════════════════ PROCESS ══════════════════ */}
+      <section id="process" style={{ ...secDark }} className="sec-pad">
+        <FadeIn><Label text="How We Work" /></FadeIn>
         <FadeIn>
-          <h2 className="font-serif font-light leading-[1.0] mb-14" style={{ color: "#1a1510", fontSize: "clamp(42px,5.5vw,80px)" }}>
-            The <em className="italic" style={{ color: "#9a7a4a" }}>Process</em>
+          <h2 style={{ ...SERIF, fontSize: "clamp(40px,5.5vw,80px)", fontWeight: 300, lineHeight: 1, color: CREAM, marginBottom: 48 }}>
+            The <em style={{ fontStyle: "italic", color: GOLD2 }}>Process</em>
           </h2>
         </FadeIn>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-[2px]">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 2 }} className="grid-4">
           {[
-            { n:"01", icon:"◎", title:"Discovery",  desc:"An unhurried conversation about how you live, what you love, and what has always felt slightly off. We listen before we propose anything." },
-            { n:"02", icon:"◈", title:"Concept",    desc:"A fully formed design direction — mood boards, material samples, and spatial sketches. Nothing is shown until it has a clear point of view." },
-            { n:"03", icon:"◫", title:"Design",     desc:"Complete construction drawings, 3D renders, and material specifications. Every decision resolved on paper before it touches your walls." },
-            { n:"04", icon:"◉", title:"Execution",  desc:"We manage every contractor, artisan, and delivery. You see your space only when it is completely finished." },
+            { n:"01", icon:"◎", t:"Discovery",  d:"An unhurried conversation about how you live, what you love, and what has always felt slightly off. We listen before we propose anything." },
+            { n:"02", icon:"◈", t:"Concept",    d:"A fully formed design direction — mood boards, material samples, and spatial sketches. Nothing is shown until it has a clear point of view." },
+            { n:"03", icon:"◫", t:"Design",     d:"Complete construction drawings, 3D renders, and material specifications. Every decision resolved on paper before touching your walls." },
+            { n:"04", icon:"◉", t:"Execution",  d:"We manage every contractor, artisan, and delivery. You see your space only when it is completely finished." },
           ].map((s, i) => (
             <FadeIn key={i} delay={i * 0.09}
-              className="p-9 relative overflow-hidden group hover:-translate-y-1 transition-all duration-300"
-              style={{ background: "#faf6f0", border: "1px solid rgba(201,169,110,0.15)" }}>
-              <div className="absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-500" style={{ background: "#c9a96e" }} />
-              <div className="flex items-center gap-3 mb-6">
-                <span className="font-sans text-[9px] tracking-[0.3em]" style={{ color: "#c9a96e" }}>{s.n}</span>
-                <span className="flex-1 h-px" style={{ background: "rgba(201,169,110,0.2)" }} />
+              style={{ padding: "36px 28px", background: BG3, border: `1px solid rgba(184,154,106,.08)`, position: "relative", overflow: "hidden", transition: "transform .3s, border-color .3s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(184,154,106,.3)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(184,154,106,.08)"; }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+                <span style={{ ...SANS, fontSize: 9, letterSpacing: "0.3em", color: GOLD }}>{s.n}</span>
+                <span style={{ flex: 1, height: 1, background: "rgba(184,154,106,.18)" }} />
               </div>
-              <p className="text-[22px] mb-3" style={{ color: "#9a7a4a" }}>{s.icon}</p>
-              <h3 className="font-serif text-[26px] font-light mb-3" style={{ color: "#1a1510" }}>{s.title}</h3>
-              <p className="font-sans text-[13px] font-light leading-[1.85]" style={{ color: "#8a8278" }}>{s.desc}</p>
+              <p style={{ fontSize: 22, color: GOLD2, marginBottom: 12 }}>{s.icon}</p>
+              <h3 style={{ ...SERIF, fontSize: 26, fontWeight: 300, color: CREAM, marginBottom: 12 }}>{s.t}</h3>
+              <p style={{ ...SANS, fontSize: 13, fontWeight: 300, color: GRAY, lineHeight: 1.85 }}>{s.d}</p>
             </FadeIn>
           ))}
         </div>
       </section>
 
-      {/* ══ SERVICES ══ */}
-      <section id="services" className="px-14 py-24 grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-20" style={{ background: "#faf6f0" }}>
-        <div className="lg:sticky lg:top-[100px] self-start">
-          <FadeIn><Eyebrow text="What We Offer" /></FadeIn>
+      {/* ══════════════════ SERVICES ══════════════════ */}
+      <section id="services" style={{ ...sec, background: BG, display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: 72 }} className="sec-pad svc-grid">
+        <div style={{ position: "sticky", top: 90, alignSelf: "start" }}>
+          <FadeIn><Label text="What We Offer" /></FadeIn>
           <FadeIn>
-            <h2 className="font-serif font-light leading-[1.0] mb-5" style={{ color: "#1a1510", fontSize: "clamp(42px,5.5vw,80px)" }}>
-              Our <em className="italic" style={{ color: "#9a7a4a" }}>Services</em>
+            <h2 style={{ ...SERIF, fontSize: "clamp(40px,5.5vw,80px)", fontWeight: 300, lineHeight: 1, color: CREAM, marginBottom: 16 }}>
+              Our <em style={{ fontStyle: "italic", color: GOLD2 }}>Services</em>
             </h2>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <p className="font-sans text-sm font-light leading-[1.85] mb-8 max-w-[300px]" style={{ color: "#8a8278" }}>
-              From a single room to a complete villa — we bring the same depth of attention to every square foot.
+            <p style={{ ...SANS, fontSize: 14, fontWeight: 300, color: GRAY, lineHeight: 1.85, marginBottom: 28, maxWidth: 300 }}>
+              From a single room to a complete villa — the same depth of attention to every square foot.
             </p>
           </FadeIn>
           <FadeIn delay={0.2}>
-            <a href="#contact" className="inline-flex items-center gap-3 font-sans text-[10px] font-medium tracking-[0.22em] uppercase px-6 py-3.5 no-underline transition-all duration-300 hover:gap-5"
-              style={{ background: "#c9a96e", color: "#0d0b08" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#e2c898")}
-              onMouseLeave={e => (e.currentTarget.style.background = "#c9a96e")}>
+            <a href="#contact"
+              style={{ ...SANS, fontSize: 10, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", background: GOLD, color: BG, padding: "13px 24px", display: "inline-flex", alignItems: "center", gap: 12, transition: "all .3s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = GOLD2; }}
+              onMouseLeave={e => { e.currentTarget.style.background = GOLD; }}>
               Start a Project <ArrowRight size={14} />
             </a>
           </FadeIn>
         </div>
         <div>
           {[
-            { n:"01", title:"Residential Design",   tags:["Apartments","Villas","Farmhouses","Penthouses"],  desc:"Tailored interiors built around your lifestyle, your aesthetic, and the craft traditions we hold dear." },
-            { n:"02", title:"Commercial Interiors",  tags:["Offices","Hotels","Retail","Restaurants"],        desc:"Spaces that communicate brand identity through architecture — where the room does the talking." },
-            { n:"03", title:"Turnkey Execution",     tags:["Concept to Handover","Project Management"],       desc:"We handle every vendor, every timeline. You arrive to a finished space on the agreed date." },
-            { n:"04", title:"Renovation & Refresh",  tags:["Remodels","Lighting Design","Art Curation"],      desc:"Surgical interventions that breathe new life into existing spaces without unnecessary disruption." },
+            { n:"01", t:"Residential Design",   tags:["Apartments","Villas","Farmhouses"],  d:"Tailored interiors built around your lifestyle, your aesthetic, and the craft traditions we hold dear." },
+            { n:"02", t:"Commercial Interiors",  tags:["Offices","Hotels","Restaurants"],    d:"Spaces that communicate brand identity through architecture — where the room does the talking." },
+            { n:"03", t:"Turnkey Execution",     tags:["Full Handover","Project Management"],d:"We handle every vendor and timeline. You arrive to a finished space on the agreed date." },
+            { n:"04", t:"Renovation & Refresh",  tags:["Remodels","Lighting","Art Curation"],d:"Surgical interventions that breathe new life into existing spaces without unnecessary disruption." },
           ].map((s, i) => (
             <FadeIn key={i} delay={i * 0.08}
-              className="group py-6 px-2 cursor-default relative hover:px-4 transition-all duration-500"
-              style={{ borderBottom: "1px solid rgba(201,169,110,0.15)" }}>
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: "rgba(201,169,110,0.04)" }} />
-              <div className="relative flex items-center gap-4">
-                <span className="font-sans text-[9px] tracking-[0.22em] w-5" style={{ color: "#c9a96e" }}>{s.n}</span>
-                <h3 className="font-serif text-[24px] font-light flex-1" style={{ color: "#1a1510" }}>{s.title}</h3>
-                <span className="text-[22px] font-light w-5 text-right group-hover:rotate-45 transition-transform duration-300"
-                  style={{ color: "#c9a96e" }}>+</span>
+              style={{ borderBottom: "1px solid rgba(184,154,106,.12)", padding: "22px 0", cursor: "default" }}
+              className="svc-row">
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}
+                onMouseEnter={e => { const p = e.currentTarget.nextElementSibling as HTMLElement; if (p) p.style.display = "block"; (e.currentTarget.querySelector(".svc-plus") as HTMLElement).style.transform = "rotate(45deg)"; }}
+                onMouseLeave={e => { const p = e.currentTarget.nextElementSibling as HTMLElement; if (p) p.style.display = "none"; (e.currentTarget.querySelector(".svc-plus") as HTMLElement).style.transform = "rotate(0deg)"; }}>
+                <span style={{ ...SANS, fontSize: 9, letterSpacing: "0.22em", color: GOLD, width: 20 }}>{s.n}</span>
+                <h3 style={{ ...SERIF, fontSize: 24, fontWeight: 300, color: CREAM, flex: 1 }}>{s.t}</h3>
+                <span className="svc-plus" style={{ fontSize: 22, color: GOLD, fontWeight: 200, transition: "transform .3s" }}>+</span>
               </div>
-              <div className="hidden group-hover:block pl-9 pt-3">
-                <p className="font-sans text-[13px] font-light leading-[1.85] mb-3" style={{ color: "#8a8278" }}>{s.desc}</p>
-                <div className="flex flex-wrap gap-2">
-                  {s.tags.map(t => <span key={t} className="font-sans text-[8px] tracking-[0.2em] uppercase px-2.5 py-1"
-                    style={{ color: "#9a7a4a", border: "1px solid rgba(154,122,74,0.35)" }}>{t}</span>)}
+              <div style={{ display: "none", paddingLeft: 36, paddingTop: 12 }}>
+                <p style={{ ...SANS, fontSize: 13, fontWeight: 300, color: GRAY, lineHeight: 1.85, marginBottom: 10 }}>{s.d}</p>
+                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
+                  {s.tags.map(t => <span key={t} style={{ ...SANS, fontSize: 8, letterSpacing: "0.2em", textTransform: "uppercase" as const, color: GOLD, border: `1px solid rgba(184,154,106,.3)`, padding: "3px 10px" }}>{t}</span>)}
                 </div>
               </div>
             </FadeIn>
@@ -576,388 +504,343 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══ ABOUT ══ */}
-      <section id="about" className="px-14 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center" style={{ background: "#f0ebe2" }}>
-        <FadeIn className="relative" direction="left">
-          <div className="overflow-hidden">
+      {/* ══════════════════ ABOUT ══════════════════ */}
+      <section id="about" style={{ ...secDark, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 72, alignItems: "center" }} className="sec-pad about-grid">
+        <FadeIn style={{ position: "relative" }}>
+          <div style={{ overflow: "hidden" }}>
             <img src="/images/p7.webp" alt="Craftmen Studio" loading="lazy"
-              className="w-full object-cover hover:scale-[1.04] transition-transform duration-[1s]"
-              style={{ aspectRatio: "3/4" }} />
+              style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", transition: "transform 1s" }}
+              onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.04)")}
+              onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")} />
           </div>
-          <div className="absolute bottom-[-24px] right-[-24px] w-[42%] overflow-hidden"
-            style={{ border: "3px solid #f0ebe2" }}>
-            <img src="/images/p9.webp" alt="Detail" loading="lazy" className="w-full object-cover" style={{ aspectRatio: "1" }} />
+          <div style={{ position: "absolute", bottom: -24, right: -24, width: "42%", border: `3px solid ${BG2}`, overflow: "hidden" }}>
+            <img src="/images/p9.webp" alt="" loading="lazy" style={{ width: "100%", aspectRatio: "1", objectFit: "cover" }} />
           </div>
-          <div className="absolute top-7 left-[-16px] text-center px-4 py-3.5"
-            style={{ background: "#faf6f0", border: "1px solid rgba(201,169,110,0.3)" }}>
-            <span className="block font-serif text-[36px] font-light leading-none" style={{ color: "#c9a96e" }}>5+</span>
-            <span className="block font-sans text-[8px] tracking-[0.25em] uppercase mt-1" style={{ color: "#8a8278" }}>Years</span>
+          <div style={{ position: "absolute", top: 28, left: -16, background: BG3, border: `1px solid rgba(184,154,106,.25)`, padding: "12px 16px", textAlign: "center" }}>
+            <span style={{ ...SERIF, display: "block", fontSize: 36, fontWeight: 300, color: GOLD, lineHeight: 1 }}>5+</span>
+            <span style={{ ...SANS, display: "block", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase" as const, color: GRAY, marginTop: 4 }}>Years</span>
           </div>
         </FadeIn>
         <div>
-          <FadeIn><Eyebrow text="The Practice" /></FadeIn>
+          <FadeIn><Label text="The Practice" /></FadeIn>
           <FadeIn>
-            <h2 className="font-serif font-light leading-[1.0] mb-5" style={{ color: "#1a1510", fontSize: "clamp(42px,5.5vw,80px)" }}>
-              About <em className="italic" style={{ color: "#9a7a4a" }}>Craftmen</em>
+            <h2 style={{ ...SERIF, fontSize: "clamp(40px,5.5vw,80px)", fontWeight: 300, lineHeight: 1, color: CREAM, marginBottom: 20 }}>
+              About <em style={{ fontStyle: "italic", color: GOLD2 }}>Craftmen</em>
             </h2>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <p className="font-sans text-sm font-light leading-[1.95] mb-5" style={{ color: "#8a8278" }}>
-              Craftmen Studio is based in Sultanpur, New Delhi. We work at the intersection of Indian craft heritage and contemporary spatial thinking — designing homes and commercial spaces that feel both deeply personal and effortlessly refined.
+            <p style={{ ...SANS, fontSize: 14, fontWeight: 300, color: GRAY, lineHeight: 1.95, marginBottom: 16 }}>
+              Craftmen Studio is based in Sultanpur, New Delhi. We work at the intersection of Indian craft heritage and contemporary spatial thinking — designing homes and spaces that feel deeply personal and effortlessly refined.
             </p>
           </FadeIn>
           <FadeIn delay={0.18}>
-            <p className="font-sans text-sm font-light leading-[1.95] mb-8" style={{ color: "#8a8278" }}>
-              We believe the best interiors are never about trends. They are about understanding how light behaves in a room at different hours, how materiality affects mood, and how architecture shapes the rituals of daily life.
+            <p style={{ ...SANS, fontSize: 14, fontWeight: 300, color: GRAY, lineHeight: 1.95, marginBottom: 28 }}>
+              We believe the best interiors are never about trends. They are about how light behaves at different hours, how materiality affects mood, and how architecture shapes the rituals of daily life.
             </p>
           </FadeIn>
-          <FadeIn delay={0.26} className="flex gap-8 pt-7" style={{ borderTop: "1px solid rgba(201,169,110,0.2)" }}>
+          <FadeIn delay={0.26} style={{ display: "flex", gap: 28, paddingTop: 24, borderTop: "1px solid rgba(184,154,106,.16)" }}>
             {[["24+","Projects"],["5+","Years"],["100%","Bespoke"]].map(([n, l]) => (
               <div key={l}>
-                <span className="block font-serif text-[34px] font-light leading-none" style={{ color: "#1a1510" }}>{n}</span>
-                <span className="block font-sans text-[8px] tracking-[0.25em] uppercase mt-1" style={{ color: "#9a7a4a" }}>{l}</span>
+                <span style={{ ...SERIF, display: "block", fontSize: 34, fontWeight: 300, color: CREAM, lineHeight: 1 }}>{n}</span>
+                <span style={{ ...SANS, display: "block", fontSize: 8, letterSpacing: "0.25em", textTransform: "uppercase" as const, color: GOLD, marginTop: 4 }}>{l}</span>
               </div>
             ))}
           </FadeIn>
         </div>
       </section>
 
-      {/* ══ GALLERY ══ */}
-      <section className="px-14 py-24" style={{ background: "#faf6f0" }}>
-        <FadeIn><Eyebrow text="Visual Diary" /></FadeIn>
-        <div className="flex items-start gap-16 mb-12">
+      {/* ══════════════════ GALLERY ══════════════════ */}
+      <section style={{ ...sec, background: BG }} className="sec-pad">
+        <FadeIn><Label text="Visual Diary" /></FadeIn>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 64, marginBottom: 40 }}>
           <FadeIn>
-            <h2 className="font-serif font-light leading-[1.0]" style={{ color: "#1a1510", fontSize: "clamp(42px,5.5vw,80px)" }}>
-              Spaces We've <em className="italic" style={{ color: "#9a7a4a" }}>Made</em>
+            <h2 style={{ ...SERIF, fontSize: "clamp(40px,5.5vw,80px)", fontWeight: 300, lineHeight: 1, color: CREAM }}>
+              Spaces We've <em style={{ fontStyle: "italic", color: GOLD2 }}>Made</em>
             </h2>
           </FadeIn>
-          <FadeIn delay={0.1} className="font-sans text-sm font-light leading-[1.85] max-w-[360px] pt-3" style={{ color: "#8a8278" }}>
-            A selection from our portfolio — rooms built on restraint, craft, and an obsessive attention to material quality.
+          <FadeIn delay={0.1} style={{ ...SANS, fontSize: 14, fontWeight: 300, color: GRAY, lineHeight: 1.85, maxWidth: 340, paddingTop: 10 }}>
+            A selection from our portfolio — rooms built on restraint, craft, and material quality.
           </FadeIn>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-[3px]" style={{ gridAutoRows: "220px" }}>
-          {GALLERY.map((g, i) => (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 3, gridAutoRows: "220px" }} className="grid-4">
+          {gallery.map((g, i) => (
             <FadeIn key={i} delay={i * 0.06}
-              className={`overflow-hidden relative cursor-pointer group ${g.span}`}
-              style={{ background: "#e8e2d8" } as React.CSSProperties}
-              onClick={() => setLightbox(g.img)}>
+              style={{ overflow: "hidden", position: "relative", cursor: "pointer", background: BG3, gridRow: g.tall ? "span 2" : "span 1" } as React.CSSProperties}
+              onClick={() => setLb(g.img)}>
               <img src={g.img} alt={g.label} loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover brightness-95 transition-all duration-[1s] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06] group-hover:brightness-100" />
-              <div className="absolute inset-0 flex items-end justify-between p-4 opacity-0 group-hover:opacity-100 transition-all duration-300"
-                style={{ background: "rgba(13,11,8,0.42)" }}>
-                <span className="font-serif text-[14px] font-light italic" style={{ color: "#faf6f0" }}>{g.label}</span>
-                <ArrowRight size={15} style={{ color: "#c9a96e" }} />
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(.9)", transition: "transform 1s ease, filter 1s ease" }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.06)"; e.currentTarget.style.filter = "brightness(1)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.filter = "brightness(.9)"; }} />
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "flex-end", justifyContent: "space-between", padding: 14, opacity: 0, background: "rgba(10,9,8,.42)", transition: "opacity .35s" }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
+                onMouseLeave={e => (e.currentTarget.style.opacity = "0")}>
+                <span style={{ ...SERIF, fontSize: 14, fontStyle: "italic", color: CREAM }}>{g.label}</span>
+                <ArrowRight size={14} color={GOLD} />
               </div>
             </FadeIn>
           ))}
         </div>
       </section>
 
-      {/* ══ MATERIALS ══ */}
-      <div className="px-14 py-14" style={{ background: "#f0ebe2", borderTop: "1px solid rgba(201,169,110,0.15)", borderBottom: "1px solid rgba(201,169,110,0.15)" }}>
-        <FadeIn><Eyebrow text="Signature Materials" /></FadeIn>
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-[2px] mt-5">
-          {[["Marble","Statuario & Nero"],["Timber","Walnut & Teak"],["Metal","Antique Brass"],
-            ["Finish","Venetian Plaster"],["Textile","Aged Velvet"],["Stone","Fossil Limestone"]].map(([t, n], i) => (
+      {/* ── materials ── */}
+      <div style={{ ...sec, background: BG2, paddingTop: 56, paddingBottom: 56 }} className="sec-pad">
+        <FadeIn><Label text="Signature Materials" /></FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 2, marginTop: 16 }} className="grid-4">
+          {[["Marble","Statuario & Nero"],["Timber","Walnut & Teak"],["Metal","Antique Brass"],["Finish","Venetian Plaster"],["Textile","Aged Velvet"],["Stone","Fossil Limestone"]].map(([t, n], i) => (
             <FadeIn key={i} delay={i * 0.07}
-              className="px-4 py-6 text-center hover:-translate-y-1 transition-all duration-300"
-              style={{ background: "#faf6f0", border: "1px solid rgba(201,169,110,0.12)" }}>
-              <span className="block font-sans text-[8px] tracking-[0.28em] uppercase mb-2" style={{ color: "#9a7a4a" }}>{t}</span>
-              <span className="block font-serif text-[14px] font-light" style={{ color: "#1a1510" }}>{n}</span>
+              style={{ padding: "22px 14px", textAlign: "center", background: BG3, border: `1px solid rgba(184,154,106,.08)`, transition: "transform .3s, border-color .3s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(184,154,106,.3)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(184,154,106,.08)"; }}>
+              <span style={{ ...SANS, display: "block", fontSize: 8, letterSpacing: "0.28em", textTransform: "uppercase" as const, color: GOLD, marginBottom: 6 }}>{t}</span>
+              <span style={{ ...SERIF, display: "block", fontSize: 14, fontWeight: 300, color: CREAM }}>{n}</span>
             </FadeIn>
           ))}
         </div>
       </div>
 
-      {/* ══ TESTIMONIALS ══ */}
-      <section className="px-14 py-24" style={{ background: "#faf6f0" }}>
-        <FadeIn><Eyebrow text="Client Voices" /></FadeIn>
-        <FadeIn className="mb-12">
-          <h2 className="font-serif font-light leading-[1.0]" style={{ color: "#1a1510", fontSize: "clamp(42px,5.5vw,80px)" }}>
-            What They <em className="italic" style={{ color: "#9a7a4a" }}>Say</em>
+      {/* ══════════════════ TESTIMONIALS ══════════════════ */}
+      <section style={{ ...sec, background: BG }} className="sec-pad">
+        <FadeIn><Label text="Client Voices" /></FadeIn>
+        <FadeIn style={{ marginBottom: 40 }}>
+          <h2 style={{ ...SERIF, fontSize: "clamp(40px,5.5vw,80px)", fontWeight: 300, lineHeight: 1, color: CREAM }}>
+            What They <em style={{ fontStyle: "italic", color: GOLD2 }}>Say</em>
           </h2>
         </FadeIn>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[3px]">
-          {TESTIMONIALS.map((t, i) => (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 3 }} className="grid-3">
+          {testimonials.map((t, i) => (
             <FadeIn key={i} delay={i * 0.09}
-              className="p-9 relative group hover:-translate-y-1 transition-all duration-300"
-              style={{ background: "#f0ebe2", border: "1px solid rgba(201,169,110,0.12)" }}>
-              <span className="absolute top-0 left-0 w-full h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{ background: "linear-gradient(to right, #c9a96e, transparent)" }} />
-              <span className="font-serif text-[56px] block leading-[0.6] mb-1" style={{ color: "#c9a96e", opacity: 0.22 }}>"</span>
-              <p className="font-serif text-[15px] font-light italic leading-[1.7] mb-6" style={{ color: "#1a1510" }}>{t.q}</p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center font-serif text-[13px] flex-shrink-0"
-                  style={{ background: "#c9a96e", color: "#0d0b08" }}>{t.init}</div>
+              style={{ padding: "32px 28px", background: BG3, border: `1px solid rgba(184,154,106,.08)`, position: "relative", transition: "transform .3s, border-color .3s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(184,154,106,.28)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(184,154,106,.08)"; }}>
+              <span style={{ ...SERIF, fontSize: 56, color: GOLD, opacity: 0.2, display: "block", lineHeight: 0.6, marginBottom: 8 }}>"</span>
+              <p style={{ ...SERIF, fontSize: 15, fontWeight: 300, fontStyle: "italic", color: CREAM, lineHeight: 1.7, marginBottom: 22 }}>{t.q}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#8a7050", display: "flex", alignItems: "center", justifyContent: "center", ...SERIF, fontSize: 13, color: BG, flexShrink: 0 }}>{t.init}</div>
                 <div>
-                  <span className="block font-sans text-[12px] font-medium" style={{ color: "#1a1510" }}>{t.name}</span>
-                  <span className="block font-sans text-[9px] tracking-[0.1em] mt-0.5" style={{ color: "#9a7a4a" }}>{t.role}</span>
+                  <span style={{ ...SANS, display: "block", fontSize: 12, fontWeight: 400, color: CREAM }}>{t.name}</span>
+                  <span style={{ ...SANS, display: "block", fontSize: 9, letterSpacing: "0.1em", color: GOLD, marginTop: 2 }}>{t.role}</span>
                 </div>
               </div>
             </FadeIn>
           ))}
-          <FadeIn delay={0.32} className="flex flex-col items-center justify-center p-9 gap-2"
-            style={{ background: "#c9a96e" }}>
-            <span className="font-serif text-[52px] font-light leading-none" style={{ color: "#0d0b08" }}>24+</span>
-            <span className="font-sans text-[9px] tracking-[0.25em] uppercase" style={{ color: "rgba(13,11,8,0.65)" }}>Happy Clients</span>
+          <FadeIn delay={0.32} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, gap: 8, background: GOLD }}>
+            <span style={{ ...SERIF, fontSize: 52, fontWeight: 300, color: BG, lineHeight: 1 }}>24+</span>
+            <span style={{ ...SANS, fontSize: 9, letterSpacing: "0.25em", textTransform: "uppercase" as const, color: "rgba(10,9,8,.65)" }}>Happy Clients</span>
           </FadeIn>
-          <FadeIn delay={0.4} className="flex flex-col items-center justify-center p-9 gap-2"
-            style={{ background: "#f0ebe2", border: "1px solid rgba(201,169,110,0.12)" }}>
-            <span className="font-serif text-[52px] font-light leading-none" style={{ color: "#c9a96e" }}>14</span>
-            <span className="font-sans text-[9px] tracking-[0.25em] uppercase" style={{ color: "#8a8278" }}>Industry Awards</span>
+          <FadeIn delay={0.4} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, gap: 8, background: BG3, border: `1px solid rgba(184,154,106,.08)` }}>
+            <span style={{ ...SERIF, fontSize: 52, fontWeight: 300, color: GOLD, lineHeight: 1 }}>14</span>
+            <span style={{ ...SANS, fontSize: 9, letterSpacing: "0.25em", textTransform: "uppercase" as const, color: GRAY }}>Industry Awards</span>
           </FadeIn>
-          <FadeIn delay={0.48} className="flex flex-col items-center justify-center p-9 gap-3"
-            style={{ background: "#f0ebe2", border: "1px solid rgba(201,169,110,0.12)" }}>
-            <img src="/images/logo.webp" alt="Craftmen Studio" className="w-16 h-16 rounded-full object-cover" />
-            <p className="font-serif text-[14px] font-light italic text-center leading-[1.65]" style={{ color: "#5a5248" }}>
-              Crafted with intention, not automation.
-            </p>
+          <FadeIn delay={0.48} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, gap: 14, background: BG3, border: `1px solid rgba(184,154,106,.08)` }}>
+            <img src="/images/logo.webp" alt="Craftmen Studio" style={{ width: 60, height: 60, borderRadius: "50%", objectFit: "cover" }} />
+            <p style={{ ...SERIF, fontSize: 14, fontWeight: 300, fontStyle: "italic", textAlign: "center", color: GRAY, lineHeight: 1.65 }}>Crafted with intention, not automation.</p>
           </FadeIn>
         </div>
       </section>
 
-      {/* ══ FAQ ══ */}
-      <section className="px-14 py-24 grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-20" style={{ background: "#f0ebe2" }}>
+      {/* ══════════════════ FAQ ══════════════════ */}
+      <section style={{ ...secDark, display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: 64 }} className="sec-pad faq-grid">
         <div>
-          <FadeIn><Eyebrow text="Common Questions" /></FadeIn>
+          <FadeIn><Label text="Common Questions" /></FadeIn>
           <FadeIn>
-            <h2 className="font-serif font-light leading-[1.0]" style={{ color: "#1a1510", fontSize: "clamp(42px,5.5vw,80px)" }}>
-              Frequently <em className="italic" style={{ color: "#9a7a4a" }}>Asked</em>
+            <h2 style={{ ...SERIF, fontSize: "clamp(40px,5.5vw,80px)", fontWeight: 300, lineHeight: 1, color: CREAM }}>
+              Frequently <em style={{ fontStyle: "italic", color: GOLD2 }}>Asked</em>
             </h2>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <p className="font-sans text-sm font-light leading-[1.85] mt-5 max-w-[300px]" style={{ color: "#8a8278" }}>
+            <p style={{ ...SANS, fontSize: 14, fontWeight: 300, color: GRAY, lineHeight: 1.85, marginTop: 16, maxWidth: 280 }}>
               Everything you need to know before we begin — answered honestly.
             </p>
           </FadeIn>
         </div>
         <div>
           {[
-            { q: "How long does a residential project take?",          a: "A complete interior from first meeting to handover typically takes 4–8 months depending on scope. All timelines are mapped in our initial proposal." },
-            { q: "Do you work outside Delhi?",                         a: "Yes — we take projects across India. We have worked in Mumbai, Bangalore, and Chandigarh. Travel and coordination costs are included in the project proposal." },
-            { q: "What is your minimum project budget?",               a: "We work with a minimum execution budget of ₹45 lakhs for residential and ₹60 lakhs for commercial. Smaller consultancy engagements are available case-by-case." },
-            { q: "Can we see the design before construction begins?",  a: "Absolutely. Our design phase includes full 3D renders, virtual walkthroughs, and material samples. Nothing is executed without your written approval." },
-            { q: "How involved do we need to be during execution?",    a: "As involved as you prefer. We handle all contractor communication daily. Most clients choose weekly updates and bi-weekly site visits." },
+            { q:"How long does a residential project take?",          a:"A complete interior from first meeting to handover typically takes 4–8 months depending on scope. Timelines are mapped in our initial proposal." },
+            { q:"Do you work outside Delhi?",                         a:"Yes — we take projects across India. We have worked in Mumbai, Bangalore, and Chandigarh. Travel costs are included in the project proposal." },
+            { q:"What is your minimum project budget?",               a:"Minimum execution budget of ₹45 lakhs for residential and ₹60 lakhs for commercial. Smaller consultancy engagements are available case-by-case." },
+            { q:"Can we see the design before construction begins?",  a:"Absolutely. Full 3D renders, virtual walkthroughs, and material samples are part of our design phase. Nothing is executed without your written approval." },
+            { q:"How involved do we need to be during execution?",    a:"As involved as you prefer. We handle all contractor communication daily. Most clients choose weekly updates and bi-weekly site visits." },
           ].map((item, i) => (
             <FadeIn key={i} delay={i * 0.07}>
-              <details className="group" style={{ borderBottom: "1px solid rgba(201,169,110,0.15)" }}>
-                <summary className="flex justify-between items-center gap-4 py-5 font-sans text-sm font-light cursor-pointer list-none transition-colors duration-300"
-                  style={{ color: "#1a1510" }}>
+              <details style={{ borderBottom: "1px solid rgba(184,154,106,.12)" }}>
+                <summary style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, padding: "18px 0", ...SANS, fontSize: 14, fontWeight: 300, color: CREAM, transition: "color .3s" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = GOLD2)}
+                  onMouseLeave={e => (e.currentTarget.style.color = CREAM)}>
                   <span>{item.q}</span>
-                  <span className="text-[22px] font-light flex-shrink-0 group-open:rotate-45 transition-transform duration-300"
-                    style={{ color: "#c9a96e" }}>+</span>
+                  <span style={{ fontSize: 22, color: GOLD, fontWeight: 200, flexShrink: 0 }}>+</span>
                 </summary>
-                <p className="font-sans text-[13px] font-light leading-[1.85] pb-5" style={{ color: "#8a8278" }}>{item.a}</p>
+                <p style={{ ...SANS, fontSize: 13, fontWeight: 300, color: GRAY, lineHeight: 1.85, paddingBottom: 18 }}>{item.a}</p>
               </details>
             </FadeIn>
           ))}
         </div>
       </section>
 
-      {/* ══ CTA ══ */}
-      <div className="relative px-14 py-24 flex items-center justify-center overflow-hidden">
-        <img src="/images/p14.webp" alt="" className="absolute inset-0 w-full h-full object-cover" style={{ filter: "saturate(0.7)" }} />
-        <div className="absolute inset-0" style={{ background: "rgba(13,11,8,0.87)" }} />
-        <FadeIn className="relative z-10 text-center flex flex-col items-center gap-6">
-          <span className="font-sans text-[9px] tracking-[0.38em] uppercase" style={{ color: "#c9a96e" }}>Ready to Begin?</span>
-          <h2 className="font-serif font-light leading-[1.1]" style={{ color: "#faf6f0", fontSize: "clamp(32px,5vw,64px)" }}>
-            Your space is waiting<br /><em className="italic" style={{ color: "#e2c898" }}>to be transformed.</em>
+      {/* ══════════════════ CTA ══════════════════ */}
+      <div style={{ position: "relative", padding: "96px 64px", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+        <img src="/images/p13.webp" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "saturate(.6)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(10,9,8,.88)" }} />
+        <FadeIn style={{ position: "relative", zIndex: 2, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
+          <span style={{ ...SANS, fontSize: 9, letterSpacing: "0.38em", textTransform: "uppercase" as const, color: GOLD }}>Ready to Begin?</span>
+          <h2 style={{ ...SERIF, fontSize: "clamp(30px,5vw,62px)", fontWeight: 300, color: CREAM, lineHeight: 1.1 }}>
+            Your space is waiting<br /><em style={{ fontStyle: "italic", color: GOLD2 }}>to be transformed.</em>
           </h2>
-          <div className="flex items-center gap-6 flex-wrap justify-center">
-            <a href="#contact" className="inline-flex items-center gap-3 font-sans text-[10px] font-medium tracking-[0.22em] uppercase px-7 py-4 no-underline transition-all duration-300 hover:gap-5"
-              style={{ background: "#c9a96e", color: "#0d0b08" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#e2c898")}
-              onMouseLeave={e => (e.currentTarget.style.background = "#c9a96e")}>
+          <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" as const, justifyContent: "center" }}>
+            <a href="#contact"
+              style={{ ...SANS, fontSize: 10, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", background: GOLD, color: BG, padding: "13px 28px", display: "inline-flex", alignItems: "center", gap: 12, transition: "all .3s" }}
+              onMouseEnter={e => (e.currentTarget.style.background = GOLD2)}
+              onMouseLeave={e => (e.currentTarget.style.background = GOLD)}>
               Start a Conversation <ArrowRight size={14} />
             </a>
-            <a href="tel:+919871766962" className="font-sans text-[13px] no-underline transition-colors duration-300"
-              style={{ color: "rgba(250,246,240,0.45)" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#c9a96e")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(250,246,240,0.45)")}>
+            <a href="tel:+919871766962"
+              style={{ ...SANS, fontSize: 13, color: "rgba(242,237,231,.4)", transition: "color .3s" }}
+              onMouseEnter={e => (e.currentTarget.style.color = GOLD)}
+              onMouseLeave={e => (e.currentTarget.style.color = "rgba(242,237,231,.4)")}>
               +91 98717 66962
             </a>
           </div>
         </FadeIn>
       </div>
 
-      {/* ══ CONTACT ══ */}
-      <section id="contact" className="px-14 py-24" style={{ background: "#faf6f0" }}>
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-16 w-full max-w-[1400px]">
+      {/* ══════════════════ CONTACT ══════════════════ */}
+      <section id="contact" style={{ ...sec, background: BG }} className="sec-pad">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 64, maxWidth: 1300 }} className="contact-grid">
           <div>
-            <FadeIn><Eyebrow text="Begin a Conversation" /></FadeIn>
+            <FadeIn><Label text="Begin a Conversation" /></FadeIn>
             <FadeIn>
-              <h2 className="font-serif font-light leading-[1.0] mb-9" style={{ color: "#1a1510", fontSize: "clamp(42px,5.5vw,80px)" }}>
-                Let's Create<br /><em className="italic" style={{ color: "#9a7a4a" }}>Something</em><br />Extraordinary
+              <h2 style={{ ...SERIF, fontSize: "clamp(40px,5.5vw,80px)", fontWeight: 300, lineHeight: 1, color: CREAM, marginBottom: 32 }}>
+                Let's Create<br /><em style={{ fontStyle: "italic", color: GOLD2 }}>Something</em><br />Extraordinary
               </h2>
             </FadeIn>
-            <FadeIn delay={0.12} className="flex flex-col gap-5">
+            <FadeIn delay={0.12} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {[
-                { icon: <MapPin size={13} />, key: "Studio", val: "350, Mehrauli-Gurgaon Road, Sultanpur\nNew Delhi, Delhi 110030" },
-                { icon: <Phone size={13} />,  key: "Phone",  val: "+91 98717 66962", href: "tel:+919871766962" },
-                { icon: <Clock size={13} />,  key: "Hours",  val: "Mon–Sat, 10am–7pm IST" },
-              ].map(({ icon, key, val, href }) => (
-                <div key={key} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex-shrink-0" style={{ color: "#c9a96e" }}>{icon}</span>
+                { icon: <MapPin size={13} />, k: "Studio", v: "350, Mehrauli-Gurgaon Road, Sultanpur\nNew Delhi, Delhi 110030" },
+                { icon: <Phone size={13} />,  k: "Phone",  v: "+91 98717 66962", href: "tel:+919871766962" },
+                { icon: <Clock size={13} />,  k: "Hours",  v: "Mon–Sat, 10am–7pm IST" },
+              ].map(({ icon, k, v, href }) => (
+                <div key={k} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <span style={{ color: GOLD, marginTop: 2, flexShrink: 0 }}>{icon}</span>
                   <div>
-                    <span className="block font-sans text-[8px] tracking-[0.3em] uppercase mb-1" style={{ color: "#9a7a4a" }}>{key}</span>
+                    <span style={{ ...SANS, display: "block", fontSize: 8, letterSpacing: "0.3em", textTransform: "uppercase" as const, color: GOLD, marginBottom: 4 }}>{k}</span>
                     {href
-                      ? <a href={href} className="font-sans text-sm font-light no-underline transition-colors duration-300 whitespace-pre-line" style={{ color: "#8a8278" }}
-                          onMouseEnter={e => (e.currentTarget.style.color = "#c9a96e")}
-                          onMouseLeave={e => (e.currentTarget.style.color = "#8a8278")}>{val}</a>
-                      : <span className="font-sans text-sm font-light whitespace-pre-line" style={{ color: "#8a8278" }}>{val}</span>}
+                      ? <a href={href} style={{ ...SANS, fontSize: 14, fontWeight: 300, color: GRAY, whiteSpace: "pre-line" as const, transition: "color .3s" }}
+                          onMouseEnter={e => (e.currentTarget.style.color = GOLD)}
+                          onMouseLeave={e => (e.currentTarget.style.color = GRAY)}>{v}</a>
+                      : <span style={{ ...SANS, fontSize: 14, fontWeight: 300, color: GRAY, whiteSpace: "pre-line" as const }}>{v}</span>}
                   </div>
                 </div>
               ))}
             </FadeIn>
           </div>
-          <FadeIn delay={0.2} className="p-9" style={{ background: "#f0ebe2", border: "1px solid rgba(201,169,110,0.2)" }}>
-            <p className="font-serif text-[22px] font-light mb-6" style={{ color: "#1a1510" }}>Send an Enquiry</p>
-            <div className="grid grid-cols-2 gap-3 mb-3">
+
+          <FadeIn delay={0.2} style={{ padding: 36, background: BG3, border: `1px solid rgba(184,154,106,.16)` }}>
+            <p style={{ ...SERIF, fontSize: 22, fontWeight: 300, color: CREAM, marginBottom: 24 }}>Send an Enquiry</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
               {[["Full Name","Your name","text"],["Email","your@email.com","email"]].map(([l, p, t]) => (
-                <div key={l} className="flex flex-col gap-1.5">
-                  <label className="font-sans text-[8px] tracking-[0.28em] uppercase" style={{ color: "#9a7a4a" }}>{l}</label>
-                  <input type={t} placeholder={p} className="px-3 py-2.5 font-sans text-[13px] font-light outline-none w-full transition-colors duration-300"
-                    style={{ background: "#faf6f0", border: "1px solid rgba(201,169,110,0.25)", color: "#1a1510" }}
-                    onFocus={e => (e.currentTarget.style.borderColor = "#c9a96e")}
-                    onBlur={e => (e.currentTarget.style.borderColor = "rgba(201,169,110,0.25)")} />
+                <div key={l} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <label style={{ ...SANS, fontSize: 8, letterSpacing: "0.28em", textTransform: "uppercase" as const, color: GOLD }}>{l}</label>
+                  <input type={t} placeholder={p}
+                    style={{ ...SANS, background: BG2, border: `1px solid rgba(184,154,106,.18)`, padding: "10px 12px", color: CREAM, fontSize: 13, fontWeight: 300, outline: "none", width: "100%", transition: "border-color .3s" }}
+                    onFocus={e => (e.currentTarget.style.borderColor = GOLD)}
+                    onBlur={e => (e.currentTarget.style.borderColor = "rgba(184,154,106,.18)")} />
                 </div>
               ))}
             </div>
-            <div className="flex flex-col gap-1.5 mb-3">
-              <label className="font-sans text-[8px] tracking-[0.28em] uppercase" style={{ color: "#9a7a4a" }}>Project Type</label>
-              <select className="px-3 py-2.5 font-sans text-[13px] font-light outline-none w-full appearance-none"
-                style={{ background: "#faf6f0", border: "1px solid rgba(201,169,110,0.25)", color: "#1a1510" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+              <label style={{ ...SANS, fontSize: 8, letterSpacing: "0.28em", textTransform: "uppercase" as const, color: GOLD }}>Project Type</label>
+              <select style={{ ...SANS, background: BG2, border: `1px solid rgba(184,154,106,.18)`, padding: "10px 12px", color: CREAM, fontSize: 13, fontWeight: 300, outline: "none", width: "100%", appearance: "none" }}>
                 <option value="">Select a service</option>
                 <option>Residential Design</option>
                 <option>Commercial Interiors</option>
                 <option>Turnkey Project</option>
-                <option>Renovation &amp; Refresh</option>
+                <option>Renovation & Refresh</option>
               </select>
             </div>
-            <div className="flex flex-col gap-1.5 mb-5">
-              <label className="font-sans text-[8px] tracking-[0.28em] uppercase" style={{ color: "#9a7a4a" }}>About Your Project</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+              <label style={{ ...SANS, fontSize: 8, letterSpacing: "0.28em", textTransform: "uppercase" as const, color: GOLD }}>About Your Project</label>
               <textarea rows={4} placeholder="Location, area, budget range, timeline…"
-                className="px-3 py-2.5 font-sans text-[13px] font-light outline-none w-full resize-y transition-colors duration-300"
-                style={{ background: "#faf6f0", border: "1px solid rgba(201,169,110,0.25)", color: "#1a1510" }}
-                onFocus={e => (e.currentTarget.style.borderColor = "#c9a96e")}
-                onBlur={e => (e.currentTarget.style.borderColor = "rgba(201,169,110,0.25)")} />
+                style={{ ...SANS, background: BG2, border: `1px solid rgba(184,154,106,.18)`, padding: "10px 12px", color: CREAM, fontSize: 13, fontWeight: 300, outline: "none", width: "100%", resize: "vertical", transition: "border-color .3s" }}
+                onFocus={e => (e.currentTarget.style.borderColor = GOLD)}
+                onBlur={e => (e.currentTarget.style.borderColor = "rgba(184,154,106,.18)")} />
             </div>
-            <button className="inline-flex items-center gap-3 font-sans text-[10px] font-medium tracking-[0.22em] uppercase px-7 py-4 border-0 cursor-pointer transition-all duration-300 hover:gap-5"
-              style={{ background: "#c9a96e", color: "#0d0b08" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#e2c898")}
-              onMouseLeave={e => (e.currentTarget.style.background = "#c9a96e")}>
+            <button
+              style={{ ...SANS, background: GOLD, color: BG, fontSize: 10, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", padding: "13px 28px", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 12, transition: "background .3s" }}
+              onMouseEnter={e => (e.currentTarget.style.background = GOLD2)}
+              onMouseLeave={e => (e.currentTarget.style.background = GOLD)}>
               Send Enquiry <ArrowRight size={15} />
             </button>
           </FadeIn>
         </div>
       </section>
 
-      {/* ══ MAP ══ */}
-      <div className="relative" style={{ height: "360px" }}>
+      {/* ── map ── */}
+      <div style={{ position: "relative", height: 360 }}>
         <iframe
           src="https://maps.google.com/maps?q=350+Mehrauli+Gurgaon+Road+Sultanpur+New+Delhi&t=&z=14&ie=UTF8&iwloc=&output=embed"
-          title="Craftmen Studio" className="w-full h-full border-0 block"
-          style={{ filter: "grayscale(100%) contrast(0.78) brightness(0.88)" }} />
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ boxShadow: "inset 0 0 60px rgba(240,235,226,.88)" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2 pointer-events-none">
-          <div className="w-3 h-3 rounded-full" style={{ background: "#c9a96e", animation: "pinPulse 2s ease infinite" }} />
-          <span className="font-sans text-[9px] tracking-[0.18em] uppercase px-3 py-1.5 whitespace-nowrap"
-            style={{ color: "#1a1510", background: "rgba(250,246,240,0.94)", border: "1px solid rgba(201,169,110,0.35)" }}>
+          title="Craftmen Studio" style={{ width: "100%", height: "100%", border: "none", display: "block", filter: "grayscale(100%) contrast(.75) brightness(.5)" }} />
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", boxShadow: "inset 0 0 70px rgba(10,9,8,.9)" }} />
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, pointerEvents: "none" }}>
+          <div style={{ width: 12, height: 12, background: GOLD, borderRadius: "50%", animation: "pp 2s ease infinite" }} />
+          <span style={{ ...SANS, fontSize: 9, letterSpacing: "0.18em", textTransform: "uppercase" as const, color: CREAM, background: "rgba(10,9,8,.85)", border: `1px solid rgba(184,154,106,.25)`, padding: "5px 12px", whiteSpace: "nowrap" }}>
             Craftmen Studio · Sultanpur, New Delhi
           </span>
         </div>
       </div>
 
-      {/* ══ FOOTER ══ */}
-      <footer className="px-14 pt-16 pb-8" style={{ background: "#0d0b08", borderTop: "1px solid rgba(201,169,110,0.12)" }}>
-        <div className="flex justify-between items-start mb-12 pb-12 flex-wrap gap-12"
-          style={{ borderBottom: "1px solid rgba(201,169,110,0.1)" }}>
+      {/* ══════════════════ FOOTER ══════════════════ */}
+      <footer style={{ padding: "64px 64px 28px", background: BG2, borderTop: "1px solid rgba(184,154,106,.1)" }}>
+        <div className="ft-top" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 48, paddingBottom: 48, borderBottom: "1px solid rgba(184,154,106,.09)", gap: 40, flexWrap: "wrap" }}>
           <div>
-            <div className="flex items-center gap-3 mb-3">
-              <img src="/images/logo.webp" alt="Craftmen Studio" className="w-12 h-12 rounded-full object-cover" />
-              <span className="font-serif text-[22px] font-light" style={{ color: "#faf6f0" }}>
-                Craftmen <em className="italic" style={{ color: "#e2c898" }}>Studio</em>
-              </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+              <img src="/images/logo.webp" alt="Craftmen Studio" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover" }} />
+              <span style={{ ...SERIF, fontSize: 22, fontWeight: 300, color: CREAM }}>Craftmen <em style={{ fontStyle: "italic", color: GOLD2 }}>Studio</em></span>
             </div>
-            <p className="font-sans text-[10px] tracking-[0.13em]" style={{ color: "#5a5248" }}>
-              Interior Architecture &amp; Spatial Design · New Delhi
-            </p>
+            <p style={{ ...SANS, fontSize: 10, letterSpacing: "0.13em", color: "#4a4845" }}>Interior Architecture & Spatial Design · New Delhi</p>
           </div>
-          <div className="flex gap-12 flex-wrap">
+          <div className="ft-cols" style={{ display: "flex", gap: 48, flexWrap: "wrap" }}>
             {[
               { h:"Navigation", items:[["Projects","#projects"],["Process","#process"],["Services","#services"],["About","#about"],["Contact","#contact"]] },
               { h:"Services",   items:[["Residential Design","#services"],["Commercial Interiors","#services"],["Turnkey Projects","#services"],["Renovation","#services"]] },
-              { h:"Contact",    items:[["+91 98717 66962","tel:+919871766962"],["350, MG Rd, Sultanpur",""],["New Delhi 110030",""],["Mon–Sat 10am–7pm",""]] },
+              { h:"Contact",    items:[["+91 98717 66962","tel:+919871766962"],["350, MG Rd, Sultanpur",""],["New Delhi, Delhi 110030",""],["Mon–Sat 10am–7pm",""]] },
             ].map(({ h, items }) => (
-              <div key={h} className="flex flex-col gap-2.5">
-                <span className="font-sans text-[8px] tracking-[0.36em] uppercase mb-1" style={{ color: "#c9a96e" }}>{h}</span>
+              <div key={h} style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                <span style={{ ...SANS, fontSize: 8, letterSpacing: "0.36em", textTransform: "uppercase" as const, color: GOLD, marginBottom: 4 }}>{h}</span>
                 {items.map(([l, href]) => (
                   href
-                    ? <a key={l} href={href} className="font-sans text-[12px] font-light no-underline transition-colors duration-300"
-                        style={{ color: "#5a5248" }}
-                        onMouseEnter={e => (e.currentTarget.style.color = "#faf6f0")}
-                        onMouseLeave={e => (e.currentTarget.style.color = "#5a5248")}>{l}</a>
-                    : <span key={l} className="font-sans text-[12px] font-light" style={{ color: "#5a5248" }}>{l}</span>
+                    ? <a key={l} href={href} style={{ ...SANS, fontSize: 12, fontWeight: 300, color: "#4a4845", transition: "color .3s" }}
+                        onMouseEnter={e => (e.currentTarget.style.color = CREAM)}
+                        onMouseLeave={e => (e.currentTarget.style.color = "#4a4845")}>{l}</a>
+                    : <span key={l} style={{ ...SANS, fontSize: 12, fontWeight: 300, color: "#4a4845" }}>{l}</span>
                 ))}
               </div>
             ))}
           </div>
         </div>
-        <div className="flex justify-between font-sans text-[10px] flex-wrap gap-2" style={{ color: "rgba(250,246,240,0.18)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", ...SANS, fontSize: 10, color: "rgba(242,237,231,.18)", flexWrap: "wrap", gap: 8 }}>
           <span>© 2026 Craftmen Studio — All rights reserved</span>
-          <em className="not-italic">Crafted with intention, not automation</em>
+          <em style={{ fontStyle: "italic" }}>Crafted with intention, not automation</em>
         </div>
       </footer>
 
-      {/* ══ LIGHTBOX ══ */}
+      {/* ══════════════════ LIGHTBOX ══════════════════ */}
       <AnimatePresence>
-        {lightbox && (
-          <motion.div className="fixed inset-0 z-[10000] flex items-center justify-center"
-            style={{ background: "rgba(13,11,8,0.97)", backdropFilter: "blur(14px)" }}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.28 }} onClick={() => setLightbox(null)}>
-            <button className="absolute top-6 right-6 bg-transparent border-0 cursor-pointer hover:rotate-90 transition-transform duration-300"
-              style={{ color: "#c9a96e" }} onClick={() => setLightbox(null)}><X size={24} /></button>
-            <motion.img src={lightbox} alt="Project"
-              className="max-w-[88vw] max-h-[88vh] object-contain"
-              style={{ border: "1px solid rgba(201,169,110,0.2)", boxShadow: "0 40px 120px rgba(0,0,0,.8)" }}
+        {lb && (
+          <motion.div
+            style={{ position: "fixed", inset: 0, zIndex: 10000, background: "rgba(10,9,8,.97)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center" }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
+            onClick={() => setLb(null)}>
+            <button style={{ position: "absolute", top: 24, right: 24, background: "none", border: "none", cursor: "pointer", color: GOLD, transition: "transform .3s" }}
+              onClick={() => setLb(null)} onMouseEnter={e => (e.currentTarget.style.transform = "rotate(90deg)")} onMouseLeave={e => (e.currentTarget.style.transform = "rotate(0)")}>
+              <X size={24} />
+            </button>
+            <motion.img src={lb} alt="Project"
+              style={{ maxWidth: "88vw", maxHeight: "88vh", objectFit: "contain", border: "1px solid rgba(184,154,106,.2)" }}
               initial={{ scale: 0.94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.94, opacity: 0 }}
-              transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               onClick={e => e.stopPropagation()} />
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* ══ KEYFRAMES + FONTS ══ */}
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; scroll-padding-top: 90px; overflow-x: hidden; }
-        body { font-family: 'Jost', sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; overflow-x: hidden; background: #faf6f0; color: #1a1510; }
-        .font-serif { font-family: 'Cormorant Garamond', Georgia, serif !important; }
-        .font-sans  { font-family: 'Jost', sans-serif !important; }
-        ::selection { background: #c9a96e; color: #0d0b08; }
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-track { background: #f0ebe2; }
-        ::-webkit-scrollbar-thumb { background: #c9a96e; border-radius: 2px; }
-        details summary::-webkit-details-marker { display: none; }
-        details summary { list-style: none; }
-        @keyframes scrollBar {
-          0%   { transform: translateY(-100%); opacity: 0; }
-          25%  { opacity: 1; }
-          75%  { opacity: 1; }
-          100% { transform: translateY(280%); opacity: 0; }
-        }
-        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        @keyframes pinPulse {
-          0%,100% { box-shadow: 0 0 0 4px rgba(201,169,110,.3), 0 0 0 8px rgba(201,169,110,.1); }
-          50%     { box-shadow: 0 0 0 8px rgba(201,169,110,.18), 0 0 0 16px rgba(201,169,110,.05); }
-        }
-        @media (max-width: 768px) {
-          nav { padding-left: 20px !important; padding-right: 20px !important; }
-        }
-      `}</style>
     </>
   );
 }
