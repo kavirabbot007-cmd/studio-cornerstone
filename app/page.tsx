@@ -55,19 +55,13 @@ function SlideIn({ c, d = 0, from = "left", cls = "" }: {
   );
 }
 
-/* ── Parallax section wrapper ── */
+/* ── Section wrapper — clean, no opacity tricks ── */
 function ParallaxSection({ children, id, bg = "#080706", className = "" }: {
   children: React.ReactNode; id?: string; bg?: string; className?: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
-  const y = useTransform(scrollYProgress, [0, 1], [-20, 20]);
   return (
-    <div ref={ref} id={id} style={{ background: bg, position: "relative", overflow: "hidden" }} className={className}>
-      <motion.div style={{ opacity, y }}>
-        {children}
-      </motion.div>
+    <div id={id} style={{ background: bg, position: "relative" }} className={className}>
+      {children}
     </div>
   );
 }
@@ -500,55 +494,121 @@ export default function Page() {
         .btt{position:fixed;bottom:28px;right:28px;z-index:400;width:46px;height:46px;background:#111009;border:1px solid rgba(184,154,106,.34);color:#b89a6a;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:background .3s,color .3s}
         .btt:hover{background:#b89a6a;color:#080706}
 
-        /* ── RESPONSIVE ── */
+        .sec-hdr-mob{display:flex;align-items:flex-start;gap:72px;margin-bottom:52px}
+        @media(max-width:768px){.sec-hdr-mob{flex-direction:column !important;gap:14px !important}}
+        @media(max-width:768px){
+          .mp{padding-left:22px !important;padding-right:22px !important;padding-top:64px !important;padding-bottom:64px !important}
+        }
         @media(max-width:1200px){
           .bento{grid-template-columns:repeat(2,1fr) !important}
           .bento .bc{grid-column:span 1 !important;margin-top:0 !important;min-height:380px}
-          .proc-timeline,.proc-details,.at-items,.about-stats{grid-template-columns:repeat(2,1fr)}
+          .proc-timeline{grid-template-columns:repeat(2,1fr)}
           .proc-timeline::before{display:none}
+          .proc-details{grid-template-columns:repeat(2,1fr)}
+          .at-items{grid-template-columns:repeat(2,1fr)}
+          .about-stats{grid-template-columns:repeat(2,1fr)}
           .mat-grid{grid-template-columns:repeat(3,1fr)}
           .tgrid{grid-template-columns:repeat(2,1fr)}
           .modal{grid-template-columns:1fr}
           .mimg{min-height:320px}
           .about-vals{grid-template-columns:1fr 1fr}
+          .sgrid{grid-template-columns:repeat(2,1fr)}
         }
         @media(max-width:1024px){
           .svc-outer{grid-template-columns:1fr}
-          .svc-right{height:380px;position:relative}
+          .svc-right{height:360px;position:relative}
           .faq-outer{grid-template-columns:1fr}
           .faq-left{border-right:none;padding:0}
-          .faq-right{padding:0;margin-top:40px}
+          .faq-right{padding:0;margin-top:32px}
           .cgrid{grid-template-columns:1fr}
           .about-body-grid{grid-template-columns:1fr}
           .sgrid{grid-template-columns:repeat(2,1fr)}
         }
         @media(max-width:768px){
-          [class*="sec"]{padding:64px 22px !important}
+          /* Fix all inline-padded sections */
           .nav{padding:14px 22px !important}
           .nav.s{padding:12px 22px !important}
           .nlinks,.ncta,.nclk,.nlo-s{display:none !important}
           .burger{display:flex !important}
-          .hbody{padding:0 22px 88px !important}
+          .hbody{padding:0 22px 80px !important}
           .htagl,.hscr{display:none !important}
+          .hsub{font-size:13px !important}
+          /* Stats — 2 col on mobile */
+          .sgrid{grid-template-columns:1fr 1fr !important}
+          .squo{flex-direction:column !important;gap:12px !important;text-align:center}
+          .sq{font-size:17px !important}
+          .srul{width:40px !important;height:1px !important;flex:none !important}
+          /* Projects bento */
           .bento{grid-template-columns:1fr !important}
-          .bento .bc{min-height:300px}
-          .proc-timeline,.at-items,.about-stats,.proc-details{grid-template-columns:1fr}
-          .squo{flex-direction:column;gap:16px}
-          .mat-grid{grid-template-columns:repeat(2,1fr)}
-          .tgrid{grid-template-columns:1fr}
-          .ctaband{padding:72px 22px}
-          .footer{padding:56px 22px 24px}
-          .ft-top{flex-direction:column}
-          .ft-cols{flex-direction:column;gap:24px}
-          .ft-bot{flex-direction:column}
-          .fmenu{padding:88px 28px}
-          .fmx{right:28px}
-          .fmf{left:28px}
-          .fmlab{font-size:32px}
-          .ft2{grid-template-columns:1fr}
-          .ctaacts{flex-direction:column;gap:14px}
-          .about-vals{grid-template-columns:1fr}
-          .mbody{padding:28px 22px}
+          .bento .bc{min-height:300px;grid-column:span 1 !important;margin-top:0 !important}
+          /* Process — 1 col */
+          .proc-timeline{grid-template-columns:1fr !important}
+          .proc-timeline::before{display:none !important}
+          .pc{padding:28px 0 0 !important;text-align:left !important}
+          .pc-dot{margin:0 0 16px 0 !important}
+          .pc-desc{max-width:100% !important;text-align:left !important}
+          .proc-details{grid-template-columns:1fr !important}
+          /* Services */
+          .svc-outer{grid-template-columns:1fr !important}
+          .svc-right{height:280px !important}
+          .svc-tab{padding:18px 22px !important}
+          /* About */
+          .about-body-grid{grid-template-columns:1fr !important}
+          .about-vals{grid-template-columns:1fr !important}
+          .about-hero-txt{font-size:24px !important;line-height:1.3 !important;margin-bottom:24px !important}
+          .at-items{grid-template-columns:1fr !important}
+          .about-stats{grid-template-columns:1fr 1fr !important}
+          /* Section headers — stack on mobile */
+          .sec-hdr{flex-direction:column !important;gap:12px !important}
+          .sec-sub{padding-top:0 !important;max-width:100% !important;font-size:13px !important}
+          /* h2 overflow fix */
+          .h2{font-size:clamp(34px,9vw,52px) !important;word-break:break-word}
+          /* Services header — fix text overflow right side */
+          .svc-outer>div:first-child{padding-bottom:0}
+          /* Contact h2 — prevent overflow */
+          .cgrid .h2{font-size:clamp(32px,8vw,48px) !important}
+          /* Process dots — fix stacking */
+          .proc-timeline{grid-template-columns:1fr !important}
+          .proc-timeline::before{display:none !important}
+          .pc{padding:28px 16px 0 !important;text-align:left !important;border-left:2px solid rgba(184,154,106,.2) !important;border-top:none !important;margin-bottom:2px}
+          .pc-dot{margin:0 0 14px 0 !important;display:none}
+          /* FAQ */
+          .faq-outer{grid-template-columns:1fr !important}
+          .faq-left{border-right:none !important;padding:0 !important}
+          .faq-right{padding:0 !important;margin-top:28px !important}
+          .faq-panel{padding:28px 22px !important}
+          /* Materials */
+          .mat-grid{grid-template-columns:repeat(2,1fr) !important}
+          /* Testimonials */
+          .tgrid{grid-template-columns:1fr !important}
+          /* Contact form */
+          .cgrid{grid-template-columns:1fr !important}
+          .ft2{grid-template-columns:1fr !important}
+          /* CTA */
+          .ctaband{padding:64px 22px !important}
+          .ctaacts{flex-direction:column !important;gap:14px !important}
+          /* Footer */
+          .footer{padding:52px 22px 24px !important}
+          .ft-top{flex-direction:column !important}
+          .ft-cols{flex-direction:column !important;gap:20px !important}
+          .ft-bot{flex-direction:column !important}
+          /* Mobile menu */
+          .fmenu{padding:88px 28px !important}
+          .fmx{right:28px !important}
+          .fmf{left:28px !important}
+          .fmlab{font-size:32px !important}
+          /* Modal */
+          .modal{grid-template-columns:1fr !important}
+          .mimg{min-height:240px !important}
+          .mbody{padding:28px 20px !important}
+          .mstats{grid-template-columns:1fr 1fr !important}
+          /* Prevent ALL horizontal overflow */
+          html,body{overflow-x:hidden !important;max-width:100vw !important}
+          *{max-width:100% !important;word-break:break-word}
+          /* Remove large inline padding from section divs */
+          [style*="padding:100px 80px"],[style*="padding: 100px 80px"]{padding:56px 20px !important}
+          [style*="padding:72px 80px"],[style*="padding: 72px 80px"]{padding:48px 20px !important}
+          [style*="padding:56px 80px"],[style*="padding: 56px 80px"]{padding:40px 20px !important}
         }
       `}</style>
 
@@ -660,7 +720,7 @@ export default function Page() {
       {/* ══ STATS ══ */}
       <div id="strig" style={{height:1}}/>
       <ParallaxSection bg="#0d0c0a" className="sec2" id="stats">
-        <div style={{padding:"100px 80px"}}>
+        <div style={{padding:"100px 80px"}} className="mp">
           <div className="sgrid">
             <Counter to={24}  suf="+" label="Projects Completed" active={statsOn}/>
             <Counter to={5}   suf="+" label="Years of Practice"  active={statsOn}/>
@@ -679,9 +739,9 @@ export default function Page() {
 
       {/* ══ PROJECTS ══ */}
       <ParallaxSection bg="#080706" id="projects">
-        <div style={{padding:"100px 80px"}}>
+        <div style={{padding:"100px 80px"}} className="mp">
           <FI c={<p className="ey">Selected Work · 2022–2024</p>}/>
-          <div style={{display:"flex",alignItems:"flex-start",gap:72,marginBottom:52}}>
+          <div className="sec-hdr-mob">
             <FI c={<h2 className="h2">Case <em>Studies</em></h2>}/>
             <FI c={<p style={{fontFamily:"'Raleway',sans-serif",fontSize:14,fontWeight:300,color:"#6a6460",lineHeight:1.92,maxWidth:360,paddingTop:14}}>Six spaces that define our range. Click any project to read the full story behind it.</p>} d={0.1}/>
           </div>
@@ -732,7 +792,7 @@ export default function Page() {
 
       {/* ══ PROCESS — timeline ══ */}
       <ParallaxSection bg="#0d0c0a" id="process">
-        <div style={{padding:"100px 80px"}}>
+        <div style={{padding:"100px 80px"}} className="mp">
           <FI c={<p className="ey">How We Work</p>}/>
           <FI c={<h2 className="h2">The <em>Process</em></h2>}/>
           <div className="proc-wrap">
@@ -783,13 +843,14 @@ export default function Page() {
 
       {/* ══ SERVICES — interactive panel ══ */}
       <ParallaxSection bg="#080706" id="services">
-        <div style={{padding:"100px 80px"}}>
+        <div style={{padding:"100px 80px"}} className="mp">
           <FI c={<p className="ey">What We Offer</p>}/>
-          <div style={{display:"flex",alignItems:"flex-start",gap:72,marginBottom:52}}>
+          <div className="sec-hdr-mob">
             <FI c={<h2 className="h2">Our <em>Services</em></h2>}/>
             <FI c={<p style={{fontFamily:"'Raleway',sans-serif",fontSize:14,fontWeight:300,color:"#6a6460",lineHeight:1.92,maxWidth:360,paddingTop:14}}>From a single room to a complete villa — we bring the same depth of attention to every square foot. Hover a service to explore it.</p>} d={0.1}/>
           </div>
-         <FI d={0.15} c={<div className="svc-outer">
+          <FI d={0.15}>
+            <div className="svc-outer">
               <div className="svc-left">
                 {SVCS.map((s,i)=>(
                   <div key={i} className={`svc-tab${activeSvc===i?" act":""}`}
@@ -827,13 +888,14 @@ export default function Page() {
                   </motion.div>
                 </AnimatePresence>
               </div>
-         </div>} />
+            </div>
+          </FI>
         </div>
       </ParallaxSection>
 
       {/* ══ ABOUT — rich text + values + timeline + stats ══ */}
       <ParallaxSection bg="#0d0c0a" id="about">
-        <div style={{padding:"100px 80px"}}>
+        <div style={{padding:"100px 80px"}} className="mp">
           <FI c={<p className="ey">The Practice</p>}/>
           <FI c={<h2 className="h2">About <em>Craftmen</em></h2>}/>
 
@@ -896,7 +958,7 @@ export default function Page() {
 
       {/* ══ MATERIALS ══ */}
       <ParallaxSection bg="#080706">
-        <div style={{padding:"72px 80px"}}>
+        <div style={{padding:"72px 80px"}} className="mp">
           <FI c={<p className="ey">Signature Materials</p>}/>
           <div className="mat-grid">
             {[["Marble","Statuario & Nero"],["Timber","Walnut & Teak"],["Metal","Antique Brass"],["Finish","Venetian Plaster"],["Textile","Aged Velvet"],["Stone","Fossil Limestone"]].map(([t,n],i)=>(
@@ -908,7 +970,7 @@ export default function Page() {
 
       {/* ══ TESTIMONIALS ══ */}
       <ParallaxSection bg="#0d0c0a">
-        <div style={{padding:"100px 80px"}}>
+        <div style={{padding:"100px 80px"}} className="mp">
           <FI c={<p className="ey">Client Voices</p>}/>
           <FI c={<h2 className="h2" style={{marginBottom:48}}>What They <em>Say</em></h2>}/>
           <div className="tgrid">
@@ -941,7 +1003,7 @@ export default function Page() {
 
       {/* ══ FAQ — with side panel ══ */}
       <ParallaxSection bg="#080706">
-        <div style={{padding:"100px 80px"}}>
+        <div style={{padding:"100px 80px"}} className="mp">
           <FI c={<p className="ey">Common Questions</p>}/>
           <FI c={<h2 className="h2" style={{marginBottom:52}}>Frequently <em>Asked</em></h2>}/>
           <div className="faq-outer">
@@ -1010,7 +1072,7 @@ export default function Page() {
 
       {/* ══ CONTACT ══ */}
       <ParallaxSection bg="#080706" id="contact">
-        <div style={{padding:"100px 80px"}}>
+        <div style={{padding:"100px 80px"}} className="mp">
           <div className="cgrid">
             <div>
               <FI c={<p className="ey">Begin a Conversation</p>}/>
