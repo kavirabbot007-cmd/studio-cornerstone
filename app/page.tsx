@@ -329,7 +329,7 @@ export default function Page() {
         .svc-panel{position:absolute;inset:0}
         .svc-panel img{width:100%;height:100%;object-fit:cover;object-position:center}
         .svc-panel-ov{position:absolute;inset:0;background:linear-gradient(135deg,rgba(8,7,6,.85) 0%,rgba(8,7,6,.4) 60%,transparent 100%)}
-        .svc-panel-body{position:absolute;inset:0;padding:48px 44px;display:flex;flex-direction:column;justify-content:flex-end}
+        .svc-panel-body{position:absolute;inset:0;padding:32px 36px;display:flex;flex-direction:column;justify-content:flex-end}
         .svc-panel-desc{font-family:'Raleway',sans-serif;font-size:14px;font-weight:300;color:rgba(242,237,231,.7);line-height:1.9;max-width:420px;margin-bottom:24px}
         .svc-bullets{display:flex;flex-direction:column;gap:8px}
         .svc-bull{display:flex;align-items:center;gap:10px;font-family:'Raleway',sans-serif;font-size:12px;font-weight:300;color:rgba(242,237,231,.55)}
@@ -530,12 +530,15 @@ export default function Page() {
           .nav.s{padding:12px 22px !important}
           .nlinks,.ncta,.nclk,.nlo-s{display:none !important}
           .burger{display:flex !important}
-          .hbody{padding:0 22px 80px !important}
+          .hbody{padding:0 20px 64px !important}
           .htagl,.hscr{display:none !important}
-          /* Hero heading — bigger on mobile */
-          .hr1,.hr2{font-size:clamp(52px,13vw,132px) !important;line-height:1.05 !important}
-          .hh1{margin-bottom:20px !important}
-          .hsub{font-size:13px !important;margin-bottom:24px !important}
+          /* Hero heading — large and bold on mobile */
+          .hr1,.hr2{font-size:clamp(58px,15vw,88px) !important;line-height:1.05 !important}
+          .hr2{padding-left:0 !important}
+          .hh1{margin-bottom:18px !important}
+          .hsub{font-size:13px !important;margin-bottom:22px !important}
+          /* Services panel — show full text from top */
+          .svc-panel-body{justify-content:flex-start !important;padding:22px 20px !important}
           /* Stats — 2 col on mobile */
           .sgrid{grid-template-columns:1fr 1fr !important}
           .squo{flex-direction:column !important;gap:12px !important;text-align:center}
@@ -855,8 +858,8 @@ export default function Page() {
             <FI c={<h2 className="h2">Our <em>Services</em></h2>}/>
             <FI c={<p style={{fontFamily:"'Raleway',sans-serif",fontSize:14,fontWeight:300,color:"#6a6460",lineHeight:1.92,maxWidth:360,paddingTop:14}}>From a single room to a complete villa — we bring the same depth of attention to every square foot. Hover a service to explore it.</p>} d={0.1}/>
           </div>
-          <FI d={0.15} c={
-  <div className="svc-outer">
+          <FI d={0.15}>
+            <div className="svc-outer">
               <div className="svc-left">
                 {SVCS.map((s,i)=>(
                   <div key={i} className={`svc-tab${activeSvc===i?" act":""}`}
@@ -895,7 +898,7 @@ export default function Page() {
                 </AnimatePresence>
               </div>
             </div>
-}/>
+          </FI>
         </div>
       </ParallaxSection>
 
