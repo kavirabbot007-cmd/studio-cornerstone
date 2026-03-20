@@ -532,7 +532,10 @@ export default function Page() {
           .burger{display:flex !important}
           .hbody{padding:0 22px 80px !important}
           .htagl,.hscr{display:none !important}
-          .hsub{font-size:13px !important}
+          /* Hero heading — bigger on mobile */
+          .hr1,.hr2{font-size:clamp(52px,13vw,132px) !important;line-height:1.05 !important}
+          .hh1{margin-bottom:20px !important}
+          .hsub{font-size:13px !important;margin-bottom:24px !important}
           /* Stats — 2 col on mobile */
           .sgrid{grid-template-columns:1fr 1fr !important}
           .squo{flex-direction:column !important;gap:12px !important;text-align:center}
@@ -550,8 +553,11 @@ export default function Page() {
           .proc-details{grid-template-columns:1fr !important}
           /* Services */
           .svc-outer{grid-template-columns:1fr !important}
-          .svc-right{height:280px !important}
-          .svc-tab{padding:18px 22px !important}
+          .svc-right{height:auto !important;min-height:320px !important;position:relative !important}
+          .svc-panel-body{justify-content:flex-start !important;padding:20px 18px !important;background:rgba(8,7,6,.82) !important;position:relative !important;z-index:2}
+          .svc-panel{position:relative !important}
+          .svc-panel img{position:relative !important;width:100% !important;height:240px !important;object-fit:cover !important}
+          .svc-panel-ov{display:none !important}
           /* About */
           .about-body-grid{grid-template-columns:1fr !important}
           .about-vals{grid-template-columns:1fr !important}
@@ -849,7 +855,8 @@ export default function Page() {
             <FI c={<h2 className="h2">Our <em>Services</em></h2>}/>
             <FI c={<p style={{fontFamily:"'Raleway',sans-serif",fontSize:14,fontWeight:300,color:"#6a6460",lineHeight:1.92,maxWidth:360,paddingTop:14}}>From a single room to a complete villa — we bring the same depth of attention to every square foot. Hover a service to explore it.</p>} d={0.1}/>
           </div>
-          <FI d={0.15} c={<div className="svc-outer">
+          <FI d={0.15} c={
+  <div className="svc-outer">
               <div className="svc-left">
                 {SVCS.map((s,i)=>(
                   <div key={i} className={`svc-tab${activeSvc===i?" act":""}`}
@@ -887,7 +894,8 @@ export default function Page() {
                   </motion.div>
                 </AnimatePresence>
               </div>
-          </div>} />
+            </div>
+}/>
         </div>
       </ParallaxSection>
 
