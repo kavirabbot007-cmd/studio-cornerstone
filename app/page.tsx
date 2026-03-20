@@ -849,8 +849,7 @@ export default function Page() {
             <FI c={<h2 className="h2">Our <em>Services</em></h2>}/>
             <FI c={<p style={{fontFamily:"'Raleway',sans-serif",fontSize:14,fontWeight:300,color:"#6a6460",lineHeight:1.92,maxWidth:360,paddingTop:14}}>From a single room to a complete villa — we bring the same depth of attention to every square foot. Hover a service to explore it.</p>} d={0.1}/>
           </div>
-          <FI d={0.15}>
-            <div className="svc-outer">
+          <FI d={0.15} c={<div className="svc-outer">
               <div className="svc-left">
                 {SVCS.map((s,i)=>(
                   <div key={i} className={`svc-tab${activeSvc===i?" act":""}`}
@@ -888,8 +887,7 @@ export default function Page() {
                   </motion.div>
                 </AnimatePresence>
               </div>
-            </div>
-          </FI>
+          </div>} />
         </div>
       </ParallaxSection>
 
