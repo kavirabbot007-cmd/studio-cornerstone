@@ -108,6 +108,7 @@ export default function Page() {
   const [heroIdx, setHeroIdx] = useState(0);
   const [filter,  setFilter]  = useState("All");
   const [modal,   setModal]   = useState<typeof PROJECTS[0] | null>(null);
+  const [matModal, setMatModal] = useState<{t:string;n:string;img:string;desc:string}|null>(null);
   const [activeSvc, setActiveSvc] = useState(0);
 
   const heroImgs = [IMG.hero1, IMG.hero2, IMG.hero3];
@@ -146,14 +147,14 @@ export default function Page() {
   },[]);
 
   useEffect(() => {
-    const fn = (e:KeyboardEvent) => { if(e.key==="Escape"){setMenu(false);setModal(null);} };
+    const fn = (e:KeyboardEvent) => { if(e.key==="Escape"){setMenu(false);setModal(null);setMatModal(null);} };
     window.addEventListener("keydown",fn); return ()=>window.removeEventListener("keydown",fn);
   },[]);
 
   useEffect(() => {
-    document.body.style.overflow = modal ? "hidden" : "";
+    document.body.style.overflow = (modal || matModal) ? "hidden" : "";
     return ()=>{ document.body.style.overflow=""; };
-  },[modal]);
+  },[modal, matModal]);
 
   const SVCS = [
     { n:"01", title:"Residential Design", sub:"Homes that feel unmistakably yours", img: IMG.svc1,
@@ -213,13 +214,13 @@ export default function Page() {
         .burger span{display:block;width:24px;height:1px;background:#f2ede7}
 
         /* hero */
-        .hero{position:relative;height:100vh;min-height:720px;display:flex;align-items:flex-end;overflow:hidden}
+        .hero{position:relative;height:100svh;min-height:600px;display:flex;align-items:flex-end;overflow:hidden}
         .hslide{position:absolute;inset:0}
         .hslide img{width:100%;height:100%;object-fit:cover;object-position:center}
         .hov1{position:absolute;inset:0;background:linear-gradient(130deg,rgba(8,7,6,.9) 0%,rgba(8,7,6,.33) 55%,rgba(8,7,6,.7) 100%)}
         .hov2{position:absolute;inset:0;background:linear-gradient(to top,rgba(8,7,6,1) 0%,rgba(8,7,6,.5) 35%,transparent 60%)}
-        .hbody{position:relative;z-index:3;padding:0 80px 120px;max-width:1100px;width:100%}
-        .hh1{font-family:'Bodoni Moda',serif;font-weight:500;line-height:1.06;color:#f2ede7;margin-bottom:32px}
+        .hbody{position:relative;z-index:3;padding:0 80px 100px;max-width:1100px;width:100%}
+        .hh1{font-family:'Bodoni Moda',serif;font-weight:500;line-height:1.06;color:#f2ede7;margin-bottom:28px}
         .hr1{display:block;font-size:clamp(58px,8.5vw,132px);letter-spacing:.04em;color:#f5f0ea}
         .hr2{display:block;font-size:clamp(58px,8.5vw,132px);font-style:italic;font-weight:400;color:#c9963a;letter-spacing:.02em;padding-left:0}
         .hsub{font-family:'Raleway',sans-serif;font-size:15px;font-weight:300;color:rgba(242,237,231,.54);line-height:1.84;max-width:400px;margin-bottom:36px}
@@ -530,13 +531,15 @@ export default function Page() {
           .nav.s{padding:12px 22px !important}
           .nlinks,.ncta,.nclk,.nlo-s{display:none !important}
           .burger{display:flex !important}
-          .hbody{padding:0 20px 64px !important}
+          .hbody{padding:0 20px 56px !important}
           .htagl,.hscr{display:none !important}
-          /* Hero heading — large and bold on mobile */
-          .hr1,.hr2{font-size:clamp(58px,15vw,88px) !important;line-height:1.05 !important}
+          /* Hero heading — LARGE on mobile */
+          .hr1,.hr2{font-size:clamp(64px,17vw,96px) !important;line-height:1.04 !important}
           .hr2{padding-left:0 !important}
-          .hh1{margin-bottom:18px !important}
-          .hsub{font-size:13px !important;margin-bottom:22px !important}
+          .hh1{margin-bottom:16px !important}
+          .hsub{font-size:13px !important;margin-bottom:20px !important}
+          .hbtns{gap:14px !important;margin-bottom:28px !important}
+          .hstats{max-width:100% !important}
           /* Services panel — show full text from top */
           .svc-panel-body{justify-content:flex-start !important;padding:22px 20px !important}
           /* Stats — 2 col on mobile */
@@ -610,8 +613,7 @@ export default function Page() {
           .modal{grid-template-columns:1fr !important}
           .mimg{min-height:240px !important}
           .mbody{padding:28px 20px !important}
-          .mstats{grid-template-columns:1fr 1fr !important}
-          /* Prevent ALL horizontal overflow */
+          .mstats{grid-template-columns:1fr 1fr !important}          /* Prevent ALL horizontal overflow */
           html,body{overflow-x:hidden !important;max-width:100vw !important}
           *{max-width:100% !important;word-break:break-word}
           /* Remove large inline padding from section divs */
@@ -786,19 +788,6 @@ export default function Page() {
         </div>
       </ParallaxSection>
 
-      {/* ══ INTERLUDE ══ */}
-      <div className="inter">
-        <img src={IMG.quote} alt=""/>
-        <div className="iov"/>
-        <FI c={
-          <div className="ibody">
-            <span className="imk">"</span>
-            <p className="iq">We believe a home should feel like an extension of the person who lives in it — not a showroom.</p>
-            <span className="icit">— Founder, Craftmen Studio</span>
-          </div>
-        }/>
-      </div>
-
       {/* ══ PROCESS — timeline ══ */}
       <ParallaxSection bg="#0d0c0a" id="process">
         <div style={{padding:"100px 80px"}} className="mp">
@@ -969,9 +958,23 @@ export default function Page() {
       <ParallaxSection bg="#080706">
         <div style={{padding:"72px 80px"}} className="mp">
           <FI c={<p className="ey">Signature Materials</p>}/>
+          <FI d={0.05} c={<p style={{fontFamily:"'Raleway',sans-serif",fontSize:13,fontWeight:300,color:"#6a6460",letterSpacing:".12em",marginBottom:28}}>Tap any material to learn more</p>}/>
           <div className="mat-grid">
-            {[["Marble","Statuario & Nero"],["Timber","Walnut & Teak"],["Metal","Antique Brass"],["Finish","Venetian Plaster"],["Textile","Aged Velvet"],["Stone","Fossil Limestone"]].map(([t,n],i)=>(
-              <FI key={i} d={i*.07} cls="mat-card" c={<><span className="mat-t">{t}</span><span className="mat-n">{n}</span></>}/>
+            {[
+              {t:"Marble",  n:"Statuario & Nero",  img:"https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800", desc:"We work primarily with Statuario Venato from Carrara and absolute Nero Marquina. Both are hand-selected at source — no two slabs the same. Used for floors, feature walls, bathroom surfaces, and bespoke joinery tops."},
+              {t:"Timber",  n:"Walnut & Teak",     img:"https://images.pexels.com/photos/1648771/pexels-photo-1648771.jpeg?auto=compress&cs=tinysrgb&w=800", desc:"All our timber is FSC-certified and kiln-dried to a precise moisture content before fabrication. American black walnut for cabinetry and joinery. Burmese teak for external and wet area applications."},
+              {t:"Metal",   n:"Antique Brass",     img:"https://images.pexels.com/photos/2507016/pexels-photo-2507016.jpeg?auto=compress&cs=tinysrgb&w=800", desc:"Hardware, fixtures, and decorative metalwork in hand-patinated brass cast by artisans in Moradabad. We avoid polished brass — our preferred finish is unlacquered, allowing the metal to age naturally with the home."},
+              {t:"Finish",  n:"Venetian Plaster",  img:"https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=800", desc:"Applied in three coats by specialist plasterers trained in traditional Italian technique. The result is a surface that absorbs and reflects light in a way no paint can replicate. Available in any colour and multiple textures."},
+              {t:"Textile", n:"Aged Velvet",       img:"https://images.pexels.com/photos/2724749/pexels-photo-2724749.jpeg?auto=compress&cs=tinysrgb&w=800", desc:"Upholstery fabrics sourced from mills in Banaras, Belgium, and Portugal. Our signature velvet has a deliberately aged pile — softer and more textured than commercial velvet. Available in 24 bespoke colourways."},
+              {t:"Stone",   n:"Fossil Limestone",  img:"https://images.pexels.com/photos/1428348/pexels-photo-1428348.jpeg?auto=compress&cs=tinysrgb&w=800", desc:"Quarried in Rajasthan, fossil limestone brings warmth and geological history to floors and feature surfaces. The visible fossil impressions make every installation completely unique. Sealed and honed for interior use."},
+            ].map((m,i)=>(
+              <FI key={i} d={i*.07} c={
+                <div className="mat-card" onClick={()=>setMatModal(m)} style={{cursor:"pointer"}}>
+                  <span className="mat-t">{m.t}</span>
+                  <span className="mat-n">{m.n}</span>
+                  <span style={{display:"block",fontFamily:"'Raleway',sans-serif",fontSize:8,letterSpacing:".2em",color:"rgba(184,154,106,.5)",marginTop:10,textTransform:"uppercase" as const}}>Tap to explore</span>
+                </div>
+              }/>
             ))}
           </div>
         </div>
@@ -1167,6 +1170,37 @@ export default function Page() {
           <em>Crafted with intention, not automation</em>
         </div>
       </footer>
+
+      {/* ══ MATERIAL MODAL ══ */}
+      <AnimatePresence>
+        {matModal && (
+          <motion.div className="mbg" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+            transition={{duration:.25}} onClick={()=>setMatModal(null)}>
+            <motion.div
+              initial={{opacity:0,y:28,scale:.97}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:16,scale:.97}}
+              transition={{duration:.38,ease:[.16,1,.3,1]}}
+              style={{background:"#0f0e0c",border:"1px solid rgba(184,154,106,.2)",maxWidth:700,width:"100%",overflow:"hidden",display:"grid",gridTemplateColumns:"1fr 1fr",maxHeight:"85vh"}}
+              onClick={e=>e.stopPropagation()}>
+              {/* image */}
+              <div style={{position:"relative",minHeight:340,overflow:"hidden"}}>
+                <img src={matModal.img} alt={matModal.n} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+                <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(8,7,6,.5) 0%,transparent 60%)"}}/>
+              </div>
+              {/* info */}
+              <div style={{padding:"36px 32px",display:"flex",flexDirection:"column",gap:0,overflowY:"auto"}}>
+                <button style={{alignSelf:"flex-end",background:"none",border:"none",cursor:"pointer",color:"#b89a6a",marginBottom:16,transition:"transform .3s"}}
+                  onClick={()=>setMatModal(null)}
+                  onMouseEnter={e=>(e.currentTarget.style.transform="rotate(90deg)")}
+                  onMouseLeave={e=>(e.currentTarget.style.transform="rotate(0)")}><X size={20}/></button>
+                <span style={{fontFamily:"'Raleway',sans-serif",fontSize:8,letterSpacing:".36em",textTransform:"uppercase" as const,color:"#b89a6a",fontWeight:500,marginBottom:10}}>{matModal.t}</span>
+                <h2 style={{fontFamily:"'Bodoni Moda',serif",fontSize:"clamp(22px,3vw,30px)",fontWeight:300,color:"#f2ede7",lineHeight:1.1,marginBottom:20}}>{matModal.n}</h2>
+                <div style={{width:40,height:1,background:"rgba(184,154,106,.4)",marginBottom:20}}/>
+                <p style={{fontFamily:"'Raleway',sans-serif",fontSize:13.5,fontWeight:300,color:"#6a6460",lineHeight:1.92}}>{matModal.desc}</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ══ PROJECT MODAL ══ */}
       <AnimatePresence>
